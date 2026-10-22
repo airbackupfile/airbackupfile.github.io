@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Upload documents</title><meta name="robots" content="noindex">
+<style>body{margin:0;font:16px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f2f6fa;color:#172b4d}.w{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+h1{font-size:20px;margin:0 0 4px}.top{background:linear-gradient(120deg,#0b2b4c,#1769aa);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:16px}.top p{margin:0;opacity:.9;font-size:14px}
+.card{background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:16px;margin-bottom:14px}label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+input[type=text]{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #c9d5e2;border-radius:10px}
+.pick{display:block;text-align:center;background:#eef5fc;border:2px dashed #1769aa;border-radius:12px;padding:22px 10px;color:#1769aa;font-weight:700;cursor:pointer}
+button{width:100%;font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;border-radius:12px;padding:14px;margin-top:12px}button:disabled{opacity:.5}
+ul{list-style:none;padding:0;margin:12px 0 0}li{padding:8px 10px;border-bottom:1px solid #eef2f6;font-size:14px;display:flex;justify-content:space-between;gap:8px}li b{font-weight:600;overflow-wrap:anywhere}
+.ok{color:#166534}.bad{color:#b91c1c}.wait{color:#5b6b82}.note{font-size:13px;color:#5b6b82}.err{background:#fde8e8;border-color:#f3b4b4}</style></head><body><div class="w">
+<div class="top"><h1>Upload documents &amp; photos</h1><p id="ttl"></p></div>
+<div id="bad" class="card err" style="display:none"></div>
+<div id="form"><div class="card"><label for="who">Your name (optional)</label><input type="text" id="who" maxlength="40" placeholder="e.g. Rajesh / ABC Motors"></div>
+<div class="card"><label class="pick" for="f">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+<p class="note">Photos, PDF, Word or Excel · up to 20 MB each. You can upload more than once.</p><ul id="list"></ul><button id="go" disabled>Upload</button></div>
+<p class="note">Files go directly and securely to the surveyor’s office. You cannot see or change other files.</p></div></div>
+<script>
+/* link: upload.html#h=<helper deployment id>&k=<claim token> — files go straight to the office Google Drive */
+var Q={};location.hash.replace(/^#/,'').split('&').forEach(function(x){var i=x.indexOf('=');if(i>0)Q[x.slice(0,i)]=decodeURIComponent(x.slice(i+1))});
+var K=/^[A-Za-z0-9]{20,80}$/.test(Q.k||'')?Q.k:'',H=/^[A-Za-z0-9_\-]{20,120}$/.test(Q.h||'')?Q.h:'',API=H?'https://script.google.com/macros/s/'+H+'/exec':'',files=[];
+function fail(t){document.getElementById('form').style.display='none';var b=document.getElementById('bad');b.style.display='block';b.textContent=t}
+function post(o){return fetch(API,{method:'POST',body:JSON.stringify(o)}).then(function(r){return r.json()})}
+if(!K||!API)fail('This upload link is incomplete. Please ask the surveyor to send it again.');
+else{document.getElementById('ttl').textContent='Checking the link…';post({action:'publicInfo',k:K}).then(function(j){if(j&&j.ok)document.getElementById('ttl').textContent=j.title;else fail(j&&j.error||'This upload link is not valid or has expired.')}).catch(function(){document.getElementById('ttl').textContent='';fail('Could not connect. Please check the internet connection and open the link again.')})}
+function li(i,t,c){var l=document.getElementById('list').children[i];l.lastChild.textContent=t;l.lastChild.className=c}
+document.getElementById('f').onchange=function(){files=[].slice.call(this.files||[]);var ul=document.getElementById('list');ul.innerHTML='';
+ files.forEach(function(f){var l=document.createElement('li');var n=document.createElement('b');n.textContent=f.name;var s=document.createElement('span');s.className='wait';s.textContent=f.size>20971520?'too large':'ready';l.appendChild(n);l.appendChild(s);ul.appendChild(l)});
+ document.getElementById('go').disabled=!files.length};
+function shrink(f){return new Promise(function(res){if(!/^image\/(jpeg|png|webp)$/.test(f.type)||f.size<600000)return res(null);var u=URL.createObjectURL(f),im=new Image();
+ im.onload=function(){var s=Math.min(1,1800/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);var d=c.toDataURL('image/jpeg',0.85);res({mime:'image/jpeg',data:d.slice(d.indexOf(',')+1),name:f.name.replace(/\.[^.]+$/,'')+'.jpg'})};im.onerror=function(){res(null)};im.src=u})}
+function raw(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){var s=String(r.result);res({mime:f.type||'application/octet-stream',data:s.slice(s.indexOf(',')+1),name:f.name})};r.onerror=function(){rej(r.error)};r.readAsDataURL(f)})}
+document.getElementById('go').onclick=function(){var btn=this;btn.disabled=true;var who=document.getElementById('who').value,i=0,ok=0;
+ (function next(){if(i>=files.length){btn.textContent=ok?'✓ Done — '+ok+' file(s) sent. Choose more to upload again':'Upload';btn.disabled=!files.length;files=[];document.getElementById('f').value='';return}
+  var k=i++,f=files[k];if(f.size>20971520){li(k,'too large','bad');return next()}li(k,'uploading…','wait');
+  shrink(f).then(function(x){return x||raw(f)}).then(function(p){return post({action:'publicUpload',k:K,fileName:p.name,mime:p.mime,data:p.data,who:who})}).then(function(j){if(j&&j.ok){ok++;li(k,'✓ sent','ok')}else li(k,'✗ '+(j&&j.error||'not accepted'),'bad');next()})
+   .catch(function(e){li(k,'✗ could not send — check internet','bad');next()})})()};
+</script></body></html>
