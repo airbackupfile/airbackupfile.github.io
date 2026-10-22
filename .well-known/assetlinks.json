@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.airbackupfile.twa",
+    "sha256_cert_fingerprints": ["92:E2:5F:60:C9:DE:BF:39:BD:23:03:AB:C5:69:71:7F:5A:32:30:87:5D:3F:26:6A:26:27:C4:0C:F4:97:09:40"]
+  }
+}]
