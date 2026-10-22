@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Live video survey</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#0b1622;color:#fff;font:16px/1.45 -apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#v{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.top{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(#000a,#0000);display:flex;gap:10px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:#f2b14a;flex:0 0 auto}.dot.ok{background:#3ad07a}.dot.bad{background:#ff6b6b}
+#st{font-weight:600;font-size:15px;text-shadow:0 1px 3px #000}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:14px 12px calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:12px;background:linear-gradient(#0000,#000c)}
+.bar button{width:64px;height:64px;border-radius:50%;border:0;background:#ffffff26;color:#fff;font-size:24px;backdrop-filter:blur(6px)}
+.bar button.end{background:#e5484d}.bar button.on{background:#fff;color:#0b1622}.bar small{display:block;font-size:10px;margin-top:-2px}
+#join{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:linear-gradient(160deg,#0b2b4c,#1769aa)}
+#join h1{font-size:22px;margin:0 0 6px}#join p{margin:0 0 18px;opacity:.9;max-width:420px}
+#join button{font:inherit;font-weight:700;font-size:18px;background:#fff;color:#0b2b4c;border:0;border-radius:14px;padding:16px 28px}
+#msg{position:fixed;left:12px;right:12px;top:40%;text-align:center;font-weight:600;text-shadow:0 1px 4px #000;display:none}
+</style></head><body>
+<video id="v" playsinline autoplay muted></video><audio id="au" autoplay></audio>
+<div class="top"><span class="dot" id="dot"></span><span id="st">Starting…</span></div>
+<div id="msg"></div>
+<div class="bar" id="bar" style="display:none">
+ <button id="bMute" title="Microphone">🎤</button><button id="bFlip" title="Switch camera">🔄</button><button id="bTorch" title="Flashlight" style="display:none">🔦</button><button id="bEnd" class="end" title="End">✕</button></div>
+<div id="join"><h1>📹 Live video survey</h1><p id="jt">The surveyor will see your camera and talk to you. Please allow the camera, microphone and location when asked.</p><button id="bJoin">Join video survey</button></div>
+<script>
+'use strict';
+var Q={};location.hash.replace(/^#/,'').split('&').forEach(function(x){var i=x.indexOf('=');if(i>0)Q[x.slice(0,i)]=decodeURIComponent(x.slice(i+1))});
+var ROOM=/^[a-f0-9]{48}$/.test(Q.r||'')?Q.r:'',HOST=String(Q.db||''),DB='';
+if(/^[a-z0-9-]+(\.[a-z0-9-]+)*\.(firebasedatabase\.app|firebaseio\.com)$/.test(HOST))DB='https://'+HOST;else if(/^localhost:\d+$/.test(HOST))DB='http://'+HOST;
+var ICE=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
+var $=function(i){return document.getElementById(i)},stream=null,pc=null,gid='',facing='environment',es=null,ended=false,torch=false,answered='';
+function st(t,c){$('st').textContent=t;$('dot').className='dot'+(c?' '+c:'')}
+function show(t){var m=$('msg');m.textContent=t||'';m.style.display=t?'block':'none'}
+function url(p){return DB+'/calls/'+ROOM+(p?'/'+p:'')+'.json'}
+function patch(o){return fetch(url(),{method:'PATCH',body:JSON.stringify(o)})}
+if(!ROOM||!DB){$('jt').textContent='This video link is incomplete. Please ask the surveyor to send it again.';$('bJoin').style.display='none'}
+function iceDone(p){return new Promise(function(res){if(p.iceGatheringState==='complete')return res();var t=setTimeout(res,3500);p.addEventListener('icegatheringstatechange',function(){if(p.iceGatheringState==='complete'){clearTimeout(t);res()}})})}
+function cam(){return navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}},audio:{echoCancellation:true,noiseSuppression:true}})}
+function torchUI(){var t=stream&&stream.getVideoTracks()[0],c={};try{c=t.getCapabilities?t.getCapabilities():{}}catch(e){}$('bTorch').style.display=c.torch?'':'none';torch=false;$('bTorch').classList.remove('on')}
+$('bJoin').onclick=function(){$('bJoin').disabled=true;st('Opening camera…');
+ cam().catch(function(){return navigator.mediaDevices.getUserMedia({video:true,audio:true})}).then(function(s){stream=s;$('v').srcObject=s;$('join').style.display='none';$('bar').style.display='flex';torchUI();
+  if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){patch({loc:{lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),acc:Math.round(p.coords.accuracy),t:Date.now()}})},function(){},{enableHighAccuracy:true,timeout:15000});
+  join()}).catch(function(e){$('bJoin').disabled=false;st('Camera not allowed','bad');$('jt').textContent='Please allow the camera and microphone for this page (tap the 🔒 icon in the address bar), then tap Join again.'})};
+function join(){gid=Date.now().toString(36)+Math.random().toString(36).slice(2,8);answered='';st('Connecting to the surveyor…');
+ fetch(url()).then(function(r){return r.json()}).then(function(d){if(!d||d.end){finish('This video survey has ended or the link is not valid.');return}
+  patch({g:gid});listen()}).catch(function(){st('No internet — retrying…','bad');setTimeout(join,4000)})}
+function apply(t,kind,path,data){var a=String(path||'/').split('/').filter(Boolean);
+ if(!a.length){if(kind==='put')return data&&typeof data==='object'?data:{};var r=Object.assign({},t);Object.keys(data||{}).forEach(function(k){if(data[k]===null)delete r[k];else r[k]=data[k]});return r}
+ var root=JSON.parse(JSON.stringify(t||{})),x=root;for(var i=0;i<a.length-1;i++){if(!x[a[i]]||typeof x[a[i]]!=='object')x[a[i]]={};x=x[a[i]]}var l=a[a.length-1];
+ if(kind==='put'){if(data===null)delete x[l];else x[l]=data}else{var y=Object.assign({},x[l]||{});Object.keys(data||{}).forEach(function(k){if(data[k]===null)delete y[k];else y[k]=data[k]});x[l]=y}return root}
+function listen(){if(es)es.close();var tree={};es=new EventSource(url());
+ ['put','patch'].forEach(function(kind){es.addEventListener(kind,function(e){var m=JSON.parse(e.data);tree=apply(tree,kind,m.path,m.data);room(tree)})});
+ es.onerror=function(){if(!ended)st('Reconnecting…','bad')}}
+function room(d){if(ended)return;if(!d||!Object.keys(d).length||d.end){finish('The surveyor has ended the video survey. Thank you!');return}
+ if(d.o&&d.o.id===gid&&answered!==gid){answered=gid;answer(d.o.sdp)}}
+function answer(sdp){if(pc)try{pc.close()}catch(e){}pc=new RTCPeerConnection({iceServers:ICE});
+ stream.getTracks().forEach(function(t){pc.addTrack(t,stream)});
+ pc.ontrack=function(e){$('au').srcObject=e.streams[0];$('au').play().catch(function(){})};
+ pc.onconnectionstatechange=function(){var s=pc.connectionState;if(s==='connected'){st('Connected with the surveyor','ok');show('')}else if(s==='disconnected')st('Weak network — reconnecting…','bad');else if(s==='failed'){st('Connection lost — retrying…','bad');setTimeout(function(){if(!ended)rejoin()},1500)}};
+ pc.setRemoteDescription({type:'offer',sdp:sdp}).then(function(){return pc.createAnswer()}).then(function(a){return pc.setLocalDescription(a)}).then(function(){return iceDone(pc)})
+  .then(function(){return patch({a:{id:gid,sdp:pc.localDescription.sdp}})}).then(function(){st('Waiting for the surveyor…')})
+  .catch(function(){st('Could not connect — retrying…','bad');setTimeout(rejoin,3000)})}
+function rejoin(){gid=Date.now().toString(36)+Math.random().toString(36).slice(2,8);answered='';patch({g:gid})}
+function finish(t){ended=true;if(es)es.close();if(pc)try{pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});$('bar').style.display='none';$('join').style.display='flex';$('join').innerHTML='<h1>📹 Video survey</h1><p>'+t+'</p>';st('Ended')}
+$('bMute').onclick=function(){var a=stream.getAudioTracks()[0];if(!a)return;a.enabled=!a.enabled;this.classList.toggle('on',!a.enabled);this.textContent=a.enabled?'🎤':'🔇'};
+$('bFlip').onclick=function(){facing=facing==='environment'?'user':'environment';var old=stream.getVideoTracks()[0];
+ navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}}}).then(function(s){var nt=s.getVideoTracks()[0];if(old){stream.removeTrack(old);old.stop()}stream.addTrack(nt);$('v').srcObject=stream;
+  if(pc)pc.getSenders().forEach(function(sn){if(sn.track&&sn.track.kind==='video'||(!sn.track&&sn.transport))sn.replaceTrack(nt)});torchUI()}).catch(function(){facing=facing==='environment'?'user':'environment'})};
+$('bTorch').onclick=function(){var t=stream.getVideoTracks()[0];torch=!torch;t.applyConstraints({advanced:[{torch:torch}]}).then(function(){$('bTorch').classList.toggle('on',torch)}).catch(function(){torch=!torch})};
+$('bEnd').onclick=function(){patch({gEnd:Date.now()});finish('You left the video survey. You can open the link again to re-join.')};
+</script></body></html>
