@@ -1,36 +1,325 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Upload documents</title><meta name="robots" content="noindex">
-<style>body{margin:0;font:16px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f2f6fa;color:#172b4d}.w{max-width:560px;margin:0 auto;padding:18px 16px 40px}
-h1{font-size:20px;margin:0 0 4px}.top{background:linear-gradient(120deg,#0b2b4c,#1769aa);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:16px}.top p{margin:0;opacity:.9;font-size:14px}
-.card{background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:16px;margin-bottom:14px}label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
-input[type=text]{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #c9d5e2;border-radius:10px}
-.pick{display:block;text-align:center;background:#eef5fc;border:2px dashed #1769aa;border-radius:12px;padding:22px 10px;color:#1769aa;font-weight:700;cursor:pointer}
-button{width:100%;font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;border-radius:12px;padding:14px;margin-top:12px}button:disabled{opacity:.5}
-ul{list-style:none;padding:0;margin:12px 0 0}li{padding:8px 10px;border-bottom:1px solid #eef2f6;font-size:14px;display:flex;justify-content:space-between;gap:8px}li b{font-weight:600;overflow-wrap:anywhere}
-.ok{color:#166534}.bad{color:#b91c1c}.wait{color:#5b6b82}.note{font-size:13px;color:#5b6b82}.err{background:#fde8e8;border-color:#f3b4b4}</style></head><body><div class="w">
-<div class="top"><h1>Upload documents &amp; photos</h1><p id="ttl"></p></div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Upload documents</title><meta name="robots" content="noindex">
+<style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f2f6fa;color:#172b4d}.w{max-width:600px;margin:0 auto;padding:16px 14px 48px}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:17px;margin:0 0 4px}.top{background:linear-gradient(120deg,#0b2b4c,#1769aa);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px}.top p{margin:0;opacity:.92;font-size:14px}
+.val{margin-top:8px!important;display:inline-block;background:#ffffff22;border-radius:999px;padding:3px 10px;font-weight:600;opacity:1!important}
+.card{background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:16px;margin-bottom:14px}
+.how ol{margin:6px 0 0;padding-left:20px;font-size:14px}.how li{margin:3px 0}.how .note{margin-top:8px}
+.pick{display:block;text-align:center;background:#eef5fc;border:2px dashed #1769aa;border-radius:12px;padding:20px 10px;color:#1769aa;font-weight:700;cursor:pointer}
+button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;border-radius:12px;padding:13px 14px;cursor:pointer}button:disabled{opacity:.5}
+.wide{width:100%;margin-top:12px}.sec{background:#fff;color:#1769aa;border:1px solid #9cc2e5}
+#list,#plist{list-style:none;padding:0;margin:12px 0 0}#list li,#plist li{padding:8px 10px;border-bottom:1px solid #eef2f6;font-size:14px;display:flex;justify-content:space-between;gap:8px}#list li b,#plist li b{font-weight:600;overflow-wrap:anywhere}
+.ok{color:#166534}.bad{color:#b91c1c}.wait{color:#5b6b82}.note{font-size:13px;color:#5b6b82;margin:4px 0 0}.err{background:#fde8e8;border-color:#f3b4b4}
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.docs button{background:#eef5fc;color:#0b2b4c;border:1px solid #c6dcf0;padding:12px 6px;font-size:14px;line-height:1.2}
+.docs button span{display:block;font-size:22px;margin-bottom:3px}.docs button.done{background:#e7f6ec;border-color:#9fd6b0}
+.doc{border:1px solid #dbe4ee;border-radius:12px;padding:12px;margin-top:12px;background:#fbfdff}.doc .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.doc .hd b{font-size:15px}
+.st{font-size:13px;margin-top:4px}.fl{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}.fl label{font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:2px}
+.fl input,.fl select{width:100%;font:inherit;font-size:15px;padding:8px 10px;border:1px solid #c9d5e2;border-radius:9px;background:#fff}.fl input.got{border-color:#7cc59a;background:#f3fbf6}
+.bar{height:6px;background:#e2e8f0;border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;width:0;background:#1769aa;transition:width .3s}
+@media(min-width:520px){.fl{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="w">
+<div class="top"><h1 id="h1">Upload documents &amp; photos</h1><p id="ttl">Checking the link…</p><p id="val" class="val" style="display:none"></p></div>
 <div id="bad" class="card err" style="display:none"></div>
-<div id="form"><div class="card"><label for="who">Your name (optional)</label><input type="text" id="who" maxlength="40" placeholder="e.g. Rajesh / ABC Motors"></div>
-<div class="card"><label class="pick" for="f">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
-<p class="note">Photos, PDF, Word or Excel · up to 20 MB each. You can upload more than once.</p><ul id="list"></ul><button id="go" disabled>Upload</button></div>
-<p class="note">Files go directly and securely to the surveyor’s office. You cannot see or change other files.</p></div></div>
+<div id="how" class="card how" style="display:none"></div>
+
+<div id="wMode" style="display:none"><div class="card"><label class="pick" for="f">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+<ul id="list"></ul><button id="go" class="wide" disabled>Upload</button></div></div>
+
+<div id="hMode" style="display:none">
+ <div class="card"><h2>1 · Documents</h2><p class="note">Tap the document, then take a clear photo or choose the PDF. You can select the front and back together.</p>
+  <div class="docs"><button data-d="dl"><span>🪪</span>Driving Licence</button><button data-d="rc"><span>🚗</span>RC</button><button data-d="permit"><span>📜</span>Permit</button><button data-d="fitness"><span>✅</span>Fitness</button><button data-d="policy"><span>🛡️</span>Policy</button><button data-d="other"><span>📄</span>Other document</button></div>
+  <input type="file" id="df" multiple accept="image/*,application/pdf,.pdf" style="display:none"><div id="docList"></div></div>
+ <div class="card"><h2>2 · Survey photos</h2><p class="note">Photos of the vehicle and damages. They upload as soon as you select them.</p>
+  <label class="pick" for="pf" style="margin-top:10px">📷 Add photos</label><input type="file" id="pf" multiple accept="image/*" style="display:none"><ul id="plist"></ul></div>
+</div>
+<p class="note" id="foot" style="display:none">Files go directly and securely to the surveyor’s office. You cannot see, change or delete files already sent.</p>
+</div>
 <script>
-/* link: upload.html#h=<helper deployment id>&k=<claim token> — files go straight to the office Google Drive */
+/* AIRDOC — turns text read from a DL / RC / Policy / chassis photo into Survey Report fields.
+   Pure functions, no network. Every result is a suggestion the user reviews and can edit. */
+(function(G){
+'use strict';
+var MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,SEPT:9,OCT:10,NOV:11,DEC:12};
+var DATE_RE=/(\d{1,2})\s*[\-\/\.]\s*(\d{1,2}|[A-Za-z]{3,4})\s*[\-\/\.]\s*((?:19|20)\d{2})|((?:19|20)\d{2})\s*[\-\/\.]\s*(\d{1,2})\s*[\-\/\.]\s*(\d{1,2})/g;
+function pad(n){return String(n).padStart(2,'0')}
+function mkDate(d,m,y){d=+d;m=+m;y=+y;if(!(y>1900&&y<2100&&m>=1&&m<=12&&d>=1&&d<=31))return '';return y+'-'+pad(m)+'-'+pad(d)}
+function dates(s){var out=[],m;DATE_RE.lastIndex=0;while((m=DATE_RE.exec(s))){var v='';
+  if(m[1]){var mo=/^\d+$/.test(m[2])?+m[2]:MON[String(m[2]).toUpperCase()];v=mo?mkDate(m[1],mo,m[3]):''}else v=mkDate(m[6],m[5],m[4]);
+  if(v)out.push({v:v,i:m.index,end:m.index+m[0].length})}return out}
+/* clean OCR text: unify dashes/quotes, keep line breaks */
+function norm(t){return String(t||'').replace(/\r/g,'').replace(/[‐-―−]/g,'-').replace(/[‘’“”]/g,"'").replace(/[|]/g,' ').replace(/[ \t]+/g,' ')}
+/* first date found after a label (same line or the next ~90 characters) */
+function dateAfter(t,label,span){var re=new RegExp(label.source||label,'ig'),m,best='';span=span||90;
+  while((m=re.exec(t))){var seg=t.slice(m.index+m[0].length,m.index+m[0].length+span),d=dates(seg);if(d.length){best=d[0].v;break}}return best}
+function textAfter(t,label,valRe,span){var re=new RegExp(label.source||label,'ig'),m;span=span||70;
+  while((m=re.exec(t))){var seg=t.slice(m.index+m[0].length,m.index+m[0].length+span).replace(/^[\s:.\-=>]+/,'');var v=seg.match(valRe);if(v)return (v[1]||v[0]).trim()}return ''}
+function lineAfter(t,label){var re=new RegExp('(?:'+(label.source||label)+')\\s*[:\\-.]*\\s*([^\\n]{2,70})','i'),m=t.match(re);if(!m)return '';
+  var v=m[1].replace(/\s{2,}.*/,'').replace(/[^A-Za-z .&']+$/,'').trim();return v}
+function cleanName(v){v=String(v||'').replace(/[^A-Za-z .']/g,' ').replace(/\s+/g,' ').trim();
+  v=v.replace(/\b(S|D|W)\s*\/?\s*O\b.*$/i,'').replace(/\b(Son|Daughter|Wife)\b.*$/i,'').trim();
+  return v.length>=3?v.toUpperCase():''}
+var today=new Date().toISOString().slice(0,10);
+function addYears(s,n){return (+s.slice(0,4)+n)+s.slice(4)}
+
+/* ---------- Driving Licence ---------- */
+function parseDL(raw){var t=norm(raw),U=t.toUpperCase(),f={};
+  var m=U.replace(/O(?=\d)/g,'0').match(/\b([A-Z]{2})[\s\-]?(\d{2})[\s\-]?((?:19|20)\d{2})[\s\-]?(\d{7})\b/);
+  if(m)f.dl=m[1]+m[2]+m[3]+m[4];
+  else{var m2=U.match(/(?:DL|LICEN[CS]E)\s*(?:NO|NUMBER)\.?\s*[:\-]?\s*([A-Z]{2}[\-\s]?\d{2}[\-\s\/]?[0-9\/\-\s]{6,14})/);if(m2)f.dl=m2[1].replace(/[\s]/g,'')}
+  var nm=lineAfter(t,/(?:^|\n|\s)Name(?!\s*of)/);if(!nm)nm=lineAfter(t,/Holder'?s?\s*Name/);if(cleanName(nm))f.dn=cleanName(nm);
+  f.dob=dateAfter(t,/(?:Date\s*of\s*Birth|D\.?\s*O\.?\s*B\.?|Birth\s*Date)/);
+  f.dli=dateAfter(t,/(?:Date\s*of\s*(?:First\s*)?Issue|Issue\s*Date|D\.?\s*O\.?\s*I\.?|Issued\s*On|First\s*Issue)/);
+  /* validity: NT (non-transport) wins, otherwise the latest validity date */
+  var nt=dateAfter(t,/Valid(?:ity)?\s*(?:Till|Upto|Up\s*to)?\s*\(?\s*NT\s*\)?/,40),vs=[],re=/(?:Valid(?:ity)?\s*(?:Till|Upto|Up\s*to)?|Expiry(?:\s*Date)?|Valid\s*Up\s*to)/ig,x;
+  while((x=re.exec(t))){var d=dates(t.slice(x.index,x.index+90));if(d.length)vs.push(d[0].v)}
+  f.dlv=nt||vs.sort().pop()||'';
+  /* fallback when labels were not read: earliest date 16+ years ago = DOB, latest future date = validity */
+  var all=dates(t).map(function(d){return d.v}).sort();
+  if(!f.dob&&all.length&&all[0]<addYears(today,-16))f.dob=all[0];
+  if(!f.dlv&&all.length&&all[all.length-1]>today)f.dlv=all[all.length-1];
+  var au=textAfter(t,/(?:Issuing|Licensing)\s*Authority|Issued\s*By|\bRTO\b|Licensing\s*Auth\.?/,/[A-Za-z][A-Za-z ,.\-()]{2,40}/);
+  if(au)f.dla=au.replace(/\s+/g,' ').replace(/[ ,.\-]+$/,'').toUpperCase();
+  var cls=[],has=function(re){return re.test(U)};
+  if(has(/\bMC\s*50\s*CC\b/))cls.push('MC 50CC');
+  if(has(/\bMCWOG\b|\bMC\s*W\/?O\s*G(EAR)?\b/))cls.push('MCWOG');
+  if(has(/\bMCWG\b|\bMC\s*W\/?\s*G(EAR)?\b|\bMCW\/G\b/))cls.push('MCWG');
+  if(has(/\bLMV(?!\s*[\-\s]?TR)/)||has(/\bLMV\s*[\-\s]?NT\b/))cls.push('LMV');
+  if(has(/\bLMV\s*[\-\s]?TR\b|\bLMV\s*[\-\s]?TRANS/))cls.push('LMV-TR');
+  if(has(/\bHGMV\b/))cls.push('HGMV');
+  if(has(/\bHPMV\b|\bHTV\b/))cls.push('HPMV/HTV');
+  if(has(/\bHMV\b/))cls.push('HMV');
+  if(has(/\bTRANS(PORT)?\b/))cls.push('Transport');
+  if(has(/\bBADGE\b|\bPSV\b/))cls.push('Transport Badge (Taxi/PSV)');
+  if(has(/\bTRACTOR\b|\bTRCTR\b/))cls.push('Tractor/Other');
+  if(cls.length)f.dlc=cls.filter(function(v,i,a){return a.indexOf(v)===i}).join(', ');
+  return clean(f)}
+
+/* ---------- Registration Certificate ---------- */
+function fmtReg(st,rto,ser,num){return st+'-'+String(+rto).padStart(2,'0')+(ser||'')+'-'+num}
+function findReg(U){var m=U.match(/\b(\d{2})\s?BH\s?(\d{4})\s?([A-Z]{1,2})\b/);if(m)return m[1]+'BH'+m[2]+m[3];
+  var re=/\b([A-Z]{2})[\s\-.]?(\d{1,2})[\s\-.]?([A-Z]{0,3})[\s\-.]?(\d{4})\b/g,x,STATES='AN AP AR AS BR CG CH DD DL DN GA GJ HP HR JH JK KA KL LA LD MH ML MN MP MZ NL OD OR PB PY RJ SK TN TR TS UK UP WB'.split(' ');
+  while((x=re.exec(U))){if(STATES.indexOf(x[1])>=0)return fmtReg(x[1],x[2],x[3],x[4])}return ''}
+function idAfter(U,label,minLen){var re=new RegExp(label.source||label,'g'),m;while((m=re.exec(U))){var seg=U.slice(m.index+m[0].length,m.index+m[0].length+60).replace(/^[\s:;.=>\-_]+/,'').split('\n')[0];
+  var toks=seg.split(/[ ]/),out='';for(var i=0;i<toks.length;i++){var k=toks[i].replace(/[^A-Z0-9\-\/]/g,'');if(!k)break;if(/^(DATE|ENGINE|ENG|CHASSIS|FUEL|OWNER|MODEL|MAKE|NO|REGN?|COLOU?R|CLASS)$/.test(k))break;
+   if(/\d/.test(k)||k.length<=5){out+=k;if(/\n/.test(toks[i]))break}else break}
+  out=out.replace(/[\-\/]+$/,'');if(out.length>=(minLen||6))return out}return ''}
+function vin(s){return s.replace(/[\s\-]/g,'').toUpperCase().replace(/O/g,'0').replace(/[IL](?=\d)/g,'1').replace(/Q/g,'0')}
+function findChassis(U){var lab=idAfter(U,/CHASSIS\s*(?:NO|NUMBER|NUM)?\.?|CH\.?\s*NO\.?|\bVIN\b|FRAME\s*NO\.?/,10);
+  if(lab){var c=vin(lab.replace(/[\-\/]/g,''));var v=c.match(/[A-HJ-NPR-Z0-9]{17}/);if(v)return v[0];if(c.length>=10&&c.length<=20)return c}
+  var any=U.replace(/[\s]/g,' ').match(/\b[A-HJ-NPR-Z0-9]{17}\b/g);if(any){for(var i=0;i<any.length;i++)if(/[A-Z]/.test(any[i])&&/\d{4}/.test(any[i]))return any[i]}return ''}
+function findEngine(U){var v=idAfter(U,/ENGINE\s*(?:NO|NUMBER|NUM)?\.?|ENG\.?\s*NO\.?|MOTOR\s*NO\.?/,6);return v?v.replace(/[\-]/g,''):''}
+function parseRC(raw){var t=norm(raw),U=t.toUpperCase(),f={};
+  var r=textAfter(U,/REG(?:N|ISTRATION)?\.?\s*(?:NO|NUMBER)\.?|VEHICLE\s*NO\.?/,/[A-Z]{2}[\s\-.]?\d{1,2}[\s\-.]?[A-Z]{0,3}[\s\-.]?\d{4}/);
+  f.reg=r?findReg(r):findReg(U);
+  f.chas=findChassis(U);f.eng=findEngine(U);
+  var ow=lineAfter(t,/Owner'?s?\s*Name|Name\s*of\s*(?:the\s*)?Owner|Registered\s*Owner|Owner/i);if(cleanName(ow))f.owner=cleanName(ow);
+  f.rci=dateAfter(t,/Date\s*of\s*Reg(?:istration|n)?\.?|Reg(?:n|istration)?\.?\s*Date|Regd\.?\s*Date/);
+  f.rcv=dateAfter(t,/Reg(?:n|istration)?\.?\s*Valid(?:ity)?(?:\s*(?:Upto|Up\s*to|Till))?|Valid\s*Up\s*to|Valid\s*Upto/);
+  f.fit=dateAfter(t,/Fitness\s*(?:Valid\s*)?(?:Upto|Up\s*to|Till|Validity)/);
+  f.tax=dateAfter(t,/Tax\s*(?:Paid\s*)?(?:Valid\s*)?(?:Upto|Up\s*to|Till|Validity)/);
+  if(/\bCNG\b/.test(U)&&/PETROL/.test(U))f.fuel='Petrol+CNG';else if(/\bCNG\b/.test(U))f.fuel='CNG';else if(/DIESEL/.test(U))f.fuel='Diesel';
+  else if(/\bELECTRIC\b|\bBATTERY\b|\bBOV\b|\bEV\b/.test(U))f.fuel='Battery';else if(/HYBRID/.test(U))f.fuel='Hybrid';else if(/PETROL/.test(U))f.fuel='Petrol';
+  var mk=lineAfter(t,/Maker'?s?\s*(?:Name|Class)?|Manufacturer|\bMake\b/i),md=lineAfter(t,/Model(?:\s*Name)?|Maker\s*Model|Variant/i);
+  var make=[mk,md].filter(Boolean).join(' ').replace(/\s+/g,' ').trim().toUpperCase();if(make.length>=3)f.make=make.slice(0,60);
+  var y=U.match(/(?:MFG|MANUF\w*|MONTH\s*[\/&]?\s*YR)[^0-9]{0,30}(?:\d{1,2}\s*[\/\-]\s*)?((?:19|20)\d{2})/);if(y)f.yr=y[1];
+  var cc=U.match(/(?:CUBIC\s*CAP\w*|\bC\.?C\.?\b)[^0-9]{0,15}(\d{2,5}(?:\.\d+)?)/);if(cc)f.cc=String(Math.round(+cc[1]));
+  var se=U.match(/SEAT\w*\s*(?:CAP\w*)?(?:\s*\(?\s*INCL\w*[^)]*\)?)?[^0-9]{0,12}(\d{1,3})/);if(se)f.seat=se[1];
+  var kg=function(v){v=String(v);while(v.length>4&&+v>60000&&/^[17]/.test(v))v=v.slice(1);return v};
+  var ul=U.match(/(?:UNLADEN|UNL(?:\.|ADEN)?\s*W\w*|\bULW\b)[^0-9]{0,20}(\d{3,6})/);if(ul)f.unl=kg(ul[1]);
+  var gv=U.match(/(?:GROSS\s*VEH\w*\s*W\w*|\bGVW\b|\bLADEN\s*W\w*|G\.?V\.?W\.?|\bCVW\b)[^0-9]{0,20}(\d{3,6})/);if(gv&&(!ul||gv.index!==ul.index))f.gvw=kg(gv[1]);
+  if(f.unl&&f.gvw&&String(f.gvw).length===5&&/^1/.test(f.gvw)&&+f.gvw>4*+f.unl)f.gvw=String(f.gvw).slice(1);
+  if(f.unl&&f.gvw&&+f.unl>+f.gvw&&String(f.gvw).length===5&&/^1/.test(f.gvw))f.gvw=String(f.gvw).slice(1);
+  if(/MOTOR\s*CAB|MAXI\s*CAB|TAXI|\bLPV\b/.test(U))f.vtype='Motor Car – Commercial Passenger (Cab/Taxi - LMV)';
+  else if(/GOODS|\bLGV\b|\bHGV\b|\bMGV\b|PICK\s*UP|TRUCK/.test(U))f.vtype='Goods Carrier';
+  else if(/\bBUS\b|OMNI\s*BUS/.test(U))f.vtype='Passenger Bus';
+  else if(/M[\-\s]?CYCLE|MOTOR\s*CYCLE|SCOOTER|MOPED|\bMCWG\b|TWO\s*WHEELER/.test(U))f.vtype='Two Wheeler';
+  else if(/MOTOR\s*CAR|\bLMV\b/.test(U))f.vtype='Motor Car – Private (LMV)';
+  var ra=lineAfter(t,/Registering\s*Authority|Regd\.?\s*Authority|Registration\s*Authority/i);if(ra)f.rto=ra.toUpperCase().slice(0,50);
+  var fi=lineAfter(t,/Financier|Hypothecat\w*(?:\s*(?:with|to))?|\bHPA\b(?:\s*with)?|Lease\s*Agreement\s*with/i);if(fi&&fi.length>=3&&!/^NA$|^N\.?A\.?$|NIL|NONE/i.test(fi))f.hpa=fi.toUpperCase().slice(0,50);
+  return clean(f)}
+
+/* ---------- Policy (PDF text or photo) ---------- */
+var ADDONS=[['Zero Depreciation (ZD)',/ZERO\s*DEP|NIL\s*DEP|DEPRECIATION\s*(?:WAIVER|REIMBURSE\w*|COVER|PROTECT\w*)|\bZD\b|BUMPER\s*TO\s*BUMPER/],
+ ['Consumables Cover (CM)',/CONSUMABLE/],['Engine Protector',/ENGINE\s*(?:PROTECT\w*|SECURE|GUARD|COVER)|HYDROSTATIC/],
+ ['Return to Invoice (RTI)',/RETURN\s*TO\s*INVOICE|\bRTI\b|INVOICE\s*(?:COVER|PROTECT\w*)/],['Roadside Assistance (RSA)',/ROAD\s*SIDE\s*ASSIST|ROADSIDE|\bRSA\b/],
+ ['NCB Protection',/NCB\s*PROTECT/],['Key Replacement',/KEY\s*(?:REPLACE\w*|LOSS|PROTECT)/],['Tyre Protect',/TYRE\s*(?:PROTECT\w*|SECURE|COVER)/],
+ ['Personal Belongings',/PERSONAL\s*BELONGING/],['Daily Allowance',/DAILY\s*(?:ALLOWANCE|CASH|CONVEYANCE)/]];
+function period(t,lab){var re=new RegExp('(?:'+lab+')[\\s\\S]{0,140}?','ig'),m;while((m=re.exec(t))){var seg=t.slice(m.index,m.index+220),d=dates(seg);if(d.length>=2)return [d[0].v,d[1].v]}return null}
+function parsePolicy(raw,opts){var t=norm(raw),U=t.toUpperCase(),f={};opts=opts||{};
+  var pn=textAfter(U,/POLICY\s*(?:NO|NUMBER|#)\.?|POLICY\s*\/\s*CERTIFICATE\s*NO\.?|CERTIFICATE\s*(?:CUM\s*POLICY\s*)?NO\.?/,/[A-Z0-9][A-Z0-9\/\-]{5,34}/);
+  if(pn)f.policy=pn.replace(/[\-\/]+$/,'');
+  var od=period(t,'Own\\s*Damage|\\bOD\\b(?:\\s*Cover)?(?:\\s*Period)?'),tp=period(t,'Third\\s*Party|\\bTP\\b(?:\\s*Cover)?(?:\\s*Period)?|Liability'),gen=period(t,'Period\\s*of\\s*Insurance|Policy\\s*Period|Insurance\\s*Period|Valid(?:ity)?\\s*From|\\bFrom\\b');
+  var o=od||gen;if(o){f.pfrom=o[0];f.pto=o[1]}if(tp&&(!od||tp[0]!==od[0]||tp[1]!==od[1])){f.tpf=tp[0];f.tpt=tp[1]}
+  var ins=lineAfter(t,/Insured'?s?\s*Name|Name\s*of\s*(?:the\s*)?Insured|Policy\s*Holder(?:'s)?\s*(?:Name)?|Proposer\s*Name|\bInsured\b/i);if(cleanName(ins))f.insured=cleanName(ins).replace(/^(MR|MRS|MS|M\/S|SHRI|SMT)\.?\s+/,'');
+  var idv=U.match(/TOTAL\s*IDV[^0-9]{0,30}([\d,]{4,12}(?:\.\d{1,2})?)/)||U.match(/(?:\bIDV\b|INSURED'?S?\s*DECLARED\s*VALUE)[^0-9]{0,40}([\d,]{4,12}(?:\.\d{1,2})?)/);
+  if(idv){var n=Math.round(+idv[1].replace(/,/g,''));if(n>=5000)f.idv=String(n)}
+  var ncb=U.match(/\bNCB\b[^0-9%]{0,25}(20|25|35|45|50)\s*%/)||U.match(/NO\s*CLAIM\s*BONUS[^0-9%]{0,25}(20|25|35|45|50)\s*%/);if(ncb)f.ncb=ncb[1]+'%';
+  var ad=[];ADDONS.forEach(function(a){var m=U.match(a[1]);if(m){var near=U.slice(m.index,m.index+60).split(/[;\n]/)[0];if(!/NOT\s*(OPTED|COVERED|APPLICABLE|TAKEN)|\bNO\b\s*$|:\s*NO\b/.test(near))ad.push(a[0])}});if(ad.length)f.addon=ad.join(', ');
+  var cover=/LIABILITY\s*ONLY|\bACT\s*ONLY|\bACT\s*POLICY/.test(U)?'liab':/STAND\s*-?\s*ALONE\s*(?:OWN\s*DAMAGE|OD)|\bSAOD\b/.test(U)?'saod':/BUNDLED|LONG\s*TERM/.test(U)?'bund':/PACKAGE|COMPREHENSIVE/.test(U)?'pkg':'';
+  var cls=/TWO\s*WHEELER|MOTOR\s*CYCLE|SCOOTER|\b2W\b/.test(U)?'tw':/GOODS|GCV|CARRYING\s*VEHICLE/.test(U)?'gcv':/PASSENGER\s*CARRYING|\bPCV\b|TAXI|CAB/.test(U)?'pcv':/PRIVATE\s*CAR|\bPVT\.?\s*CAR\b/.test(U)?'pc':'';
+  var map={pc:{bund:'Private Car Bundled Policy',pkg:'Private Car Package Policy',saod:'Private Car Standalone OD Policy',liab:'Private Car Liability Only (Act) Policy'},
+   pcv:{bund:'Commercial Passenger Vehicle Bundled Policy',pkg:'Commercial Passenger Car Package Policy',saod:'Commercial Passenger Car Standalone OD Policy',liab:'Commercial Passenger Vehicle Liability Only Policy'},
+   gcv:{bund:'Commercial Goods Vehicle Bundled Policy',pkg:'Commercial Goods Vehicle Package Policy',saod:'Commercial Goods Vehicle Stand Alone Policy',liab:'Commercial Vehicle Liability Only (Act) Policy'},
+   tw:{bund:'Two Wheeler Bundled Policy',pkg:'Two Wheeler Package Policy',saod:'Two Wheeler Standalone OD Policy',liab:'Two Wheeler Liability Only Policy'}};
+  if(cls&&cover&&map[cls][cover])f.ptype=map[cls][cover];
+  if(opts.insurers&&opts.insurers.length){var UI=U.split('\n').filter(function(l){return !/HYPOTHEC|FINANCIER|\bHPA\b|AGREEMENT/.test(l)}).join('\n'),best='',bi=1e9,bl=0;
+   opts.insurers.forEach(function(nm){var w=String(nm).toUpperCase().replace(/\b(LTD|LIMITED|CO|COMPANY|THE|INSURANCE|GENERAL|OF|INDIA|AND)\b|[^A-Z ]/g,' ').split(/\s+/).filter(function(x){return x.length>2});
+    if(!w.length)return;var pos=[];for(var k=0;k<w.length;k++){var mm=new RegExp('\\b'+w[k]+'\\b').exec(UI);if(!mm)return;pos.push(mm.index)}
+    var at=Math.min.apply(null,pos);if(at<bi-40||(Math.abs(at-bi)<=40&&w.length>bl)){bi=at;bl=w.length;best=nm}});if(best)f.insurer=best}
+  var r=findReg(U);if(r)f.reg=r;var c=findChassis(U);if(c)f.chas=c;var e=findEngine(U);if(e)f.eng=e;
+  var fi=lineAfter(t,/Hypothecat\w*(?:\s*(?:with|to))?|Financier|\bHPA\b(?:\s*with)?|Agreement\s*Type/i);if(fi&&fi.length>=3&&!/^NA$|N\.A|NIL|NONE/i.test(fi))f.hpa=fi.toUpperCase().slice(0,50);
+  var cc=U.match(/(?:CUBIC\s*CAP\w*|\bC\.?C\.?\b)[^0-9]{0,15}(\d{2,5})/);if(cc)f.cc=cc[1];
+  var y=U.match(/(?:YEAR\s*OF\s*MANUF\w*|MFG\.?\s*YEAR|MANUFACTUR\w*\s*YEAR)[^0-9]{0,15}((?:19|20)\d{2})/);if(y)f.yr=y[1];
+  return clean(f)}
+
+/* ---------- Physical chassis stamping ---------- */
+function parseChassisPhoto(raw){var U=norm(raw).toUpperCase(),toks=U.replace(/[^A-Z0-9\n ]/g,' ').split(/\s+/),cand=[];
+  var joined=U.replace(/[^A-Z0-9]/g,'');
+  toks.forEach(function(x){x=vin(x);if(x.length>=14&&x.length<=19&&/\d/.test(x))cand.push(x)});
+  var m=vin(joined).match(/[A-HJ-NPR-Z0-9]{17}/g)||[];
+  var all=cand.concat(m).filter(function(v,i,a){return a.indexOf(v)===i});
+  all.sort(function(a,b){return Math.abs(a.length-17)-Math.abs(b.length-17)});
+  return {chassis:all[0]||'',candidates:all.slice(0,5),raw:vin(joined)}}
+/* compare: same after OCR-confusion normalisation; partial when the last 6 characters match */
+function compareChassis(a,b,raw){a=vin(a||'');b=vin(b||'');raw=vin(raw||'');if(!b)return 'unknown';
+  if(a&&a===b||raw&&raw.indexOf(b)>=0)return 'match';
+  var t6=b.slice(-6);if(t6.length===6&&(a.indexOf(t6)>=0||raw.indexOf(t6)>=0))return 'partial';
+  if(!a&&!raw)return 'unknown';return 'mismatch'}
+
+function clean(f){Object.keys(f).forEach(function(k){if(f[k]===undefined||f[k]===null||f[k]==='')delete f[k]});return f}
+
+
+/* ---------- Permit (transport vehicle) ---------- */
+function rangeAfter(t,label){var re=new RegExp(label.source||label,'ig'),m;while((m=re.exec(t))){var seg=t.slice(m.index+m[0].length,m.index+m[0].length+110),d=dates(seg);
+  if(d.length>=2&&/\b(?:TO|UPTO|UP\s*TO|TILL|-)\b/i.test(seg.slice(d[0].end,d[1].i+1)))return[d[0].v,d[1].v];if(d.length)return[d[0].v,'']}return['','']}
+function parsePermit(raw){var t0=norm(raw),U=t0.toUpperCase(),f={},t=t0.split('\n').filter(function(l){return !/AUTHORI[SZ]ATION/i.test(l)}).join('\n');
+  f.reg=findReg(U);
+  var r=rangeAfter(t,/(?:Permit\s*)?(?:Valid(?:ity)?\s*(?:Period|From)|Period\s*of\s*Validity|Validity\s*of\s*(?:the\s*)?Permit)/);
+  f.pmi=r[0]||dateAfter(t,/(?:Date\s*of\s*(?:Issue|Grant)|Issue\s*Date|Issued\s*on|Granted\s*on|Permit\s*(?:Issue|Grant)\s*Date)/);
+  f.perm=r[1]||dateAfter(t,/(?:Permit\s*)?Valid(?:ity)?\s*(?:Upto|Up\s*to|Till|To)|(?:Date\s*of\s*)?Expiry(?:\s*Date)?|Permit\s*Valid\s*Upto/);
+  var a=rangeAfter(t0,/Authori[sz]ation\s*(?:Valid(?:ity)?\s*(?:Period|From))?/);
+  f.pai=a[0];f.pav=a[1]||dateAfter(t0,/Authori[sz]ation\s*(?:Valid(?:ity)?)?\s*(?:Upto|Up\s*to|Till|To)/);
+  if(f.pai&&f.pai===f.pmi&&!f.pav)f.pai='';
+  var ro=lineAfter(t,/(?:Route|Area\s*of\s*Operation|Region\s*(?:of\s*Operation)?|Valid\s*(?:in|for)\s*(?:the\s*)?(?:State|Area|Region)s?|Jurisdiction)/i);
+  ro=String(ro||'').replace(/^[\/\s]*(?:AREA\s*OF\s*OPERATION|ROUTE)?\s*[:\-.]*\s*/i,'');
+  if(ro&&ro.length>=3)f.route=ro.toUpperCase().slice(0,60);
+  if(/NATIONAL\s*PERMIT/.test(U)&&!f.route)f.route='NATIONAL PERMIT – ALL INDIA';
+  if(/ALL\s*INDIA\s*TOURIST/.test(U)&&!f.route)f.route='ALL INDIA TOURIST PERMIT';
+  return clean(f)}
+/* ---------- Certificate of Fitness ---------- */
+function parseFitness(raw){var t=norm(raw),U=t.toUpperCase(),f={};
+  f.reg=findReg(U);f.chas=findChassis(U);f.eng=findEngine(U);
+  var r=rangeAfter(t,/(?:Fitness\s*)?(?:Valid(?:ity)?\s*(?:Period|From)|Period\s*of\s*Validity)/);
+  f.fti=r[0]||dateAfter(t,/(?:Date\s*of\s*(?:Issue|Inspection)|Inspection\s*Date|Issue\s*Date|Issued\s*on|Certificate\s*Date|Inspected\s*on)/);
+  f.fit=r[1]||dateAfter(t,/(?:Fitness\s*)?Valid(?:ity)?\s*(?:Upto|Up\s*to|Till|To)|Certificate\s*(?:is\s*)?valid\s*(?:upto|up\s*to|till)|Next\s*Inspection(?:\s*Due)?(?:\s*(?:Date|on))?|Expiry\s*Date|Valid\s*Upto/);
+  if(f.fit&&f.fti&&f.fit<=f.fti){var x=f.fti;f.fti=f.fit;f.fit=x}
+  return clean(f)}
+
+G.AIRDOC={parsePermit:parsePermit,parseFitness:parseFitness,parseDL:parseDL,parseRC:parseRC,parsePolicy:parsePolicy,parseChassisPhoto:parseChassisPhoto,compareChassis:compareChassis,dates:dates};
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+'use strict';
+/* link: upload.html#h=<helper deployment id>&k=<claim token>. The office decides whether it is a workshop / others link or a claim handler link. */
 var Q={};location.hash.replace(/^#/,'').split('&').forEach(function(x){var i=x.indexOf('=');if(i>0)Q[x.slice(0,i)]=decodeURIComponent(x.slice(i+1))});
-var K=/^[A-Za-z0-9]{20,80}$/.test(Q.k||'')?Q.k:'',H=/^[A-Za-z0-9_\-]{20,120}$/.test(Q.h||'')?Q.h:'',API=H?'https://script.google.com/macros/s/'+H+'/exec':'',files=[];
-function fail(t){document.getElementById('form').style.display='none';var b=document.getElementById('bad');b.style.display='block';b.textContent=t}
+var K=/^[A-Za-z0-9]{20,80}$/.test(Q.k||'')?Q.k:'',H=/^[A-Za-z0-9_\-]{20,120}$/.test(Q.h||'')?Q.h:'',API=H?'https://script.google.com/macros/s/'+H+'/exec':'';
+if(Q.api&&/^http:\/\/localhost:\d+\//.test(Q.api))API=Q.api; /* local testing only */
+var $=function(i){return document.getElementById(i)},MAXB=20971520,INFO={};
+function fail(t){['wMode','hMode','how','foot'].forEach(function(i){$(i).style.display='none'});var b=$('bad');b.style.display='block';b.textContent=t}
 function post(o){return fetch(API,{method:'POST',body:JSON.stringify(o)}).then(function(r){return r.json()})}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fdt(t){try{return new Date(t).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return ''}}
+function stamp(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')};return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())}
+function validity(){if(!INFO.exp)return;var days=Math.max(0,Math.ceil((INFO.exp-Date.now())/86400000)),v=$('val');v.style.display='inline-block';
+ v.textContent='⏳ Valid until '+fdt(INFO.exp)+' ('+days+(days===1?' day':' days')+' left)'+(INFO.left!=null?' · '+INFO.left+' uploads left':'')}
+function how(kind){var h=$('how');h.style.display='block';
+ h.innerHTML=kind==='h'?'<h2>How to use this link</h2><ol><li><b>Documents:</b> tap <b>Driving Licence, RC, Permit, Fitness</b> or <b>Policy</b> → take a clear photo (flat, good light, all four corners visible) or choose the PDF.</li><li>The details are read on this phone in a few seconds. <b>Check them, correct anything wrong</b>, then tap <b>Send details</b>. The office Survey Report is filled automatically.</li><li><b>Survey photos:</b> tap <b>Add photos</b> and select them. They upload by themselves.</li><li>Wait until every item shows <b class="ok">✓</b> before closing this page.</li></ol><p class="note">Photos, PDF · up to 20 MB each. You can open this link again and add more until it expires.</p>'
+ :'<h2>How to upload</h2><ol><li>Tap <b>Choose photos or files</b>.</li><li>Select photos, PDF, Word or Excel files (up to 20 MB each). You can select many at once.</li><li>Tap <b>Upload</b> and wait until each file shows <b class="ok">✓ sent</b>.</li></ol><p class="note">You can open this link again and upload more until it expires.</p>'}
 if(!K||!API)fail('This upload link is incomplete. Please ask the surveyor to send it again.');
-else{document.getElementById('ttl').textContent='Checking the link…';post({action:'publicInfo',k:K}).then(function(j){if(j&&j.ok)document.getElementById('ttl').textContent=j.title;else fail(j&&j.error||'This upload link is not valid or has expired.')}).catch(function(){document.getElementById('ttl').textContent='';fail('Could not connect. Please check the internet connection and open the link again.')})}
-function li(i,t,c){var l=document.getElementById('list').children[i];l.lastChild.textContent=t;l.lastChild.className=c}
-document.getElementById('f').onchange=function(){files=[].slice.call(this.files||[]);var ul=document.getElementById('list');ul.innerHTML='';
- files.forEach(function(f){var l=document.createElement('li');var n=document.createElement('b');n.textContent=f.name;var s=document.createElement('span');s.className='wait';s.textContent=f.size>20971520?'too large':'ready';l.appendChild(n);l.appendChild(s);ul.appendChild(l)});
- document.getElementById('go').disabled=!files.length};
-function shrink(f){return new Promise(function(res){if(!/^image\/(jpeg|png|webp)$/.test(f.type)||f.size<600000)return res(null);var u=URL.createObjectURL(f),im=new Image();
- im.onload=function(){var s=Math.min(1,1800/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);var d=c.toDataURL('image/jpeg',0.85);res({mime:'image/jpeg',data:d.slice(d.indexOf(',')+1),name:f.name.replace(/\.[^.]+$/,'')+'.jpg'})};im.onerror=function(){res(null)};im.src=u})}
-function raw(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){var s=String(r.result);res({mime:f.type||'application/octet-stream',data:s.slice(s.indexOf(',')+1),name:f.name})};r.onerror=function(){rej(r.error)};r.readAsDataURL(f)})}
-document.getElementById('go').onclick=function(){var btn=this;btn.disabled=true;var who=document.getElementById('who').value,i=0,ok=0;
- (function next(){if(i>=files.length){btn.textContent=ok?'✓ Done — '+ok+' file(s) sent. Choose more to upload again':'Upload';btn.disabled=!files.length;files=[];document.getElementById('f').value='';return}
-  var k=i++,f=files[k];if(f.size>20971520){li(k,'too large','bad');return next()}li(k,'uploading…','wait');
-  shrink(f).then(function(x){return x||raw(f)}).then(function(p){return post({action:'publicUpload',k:K,fileName:p.name,mime:p.mime,data:p.data,who:who})}).then(function(j){if(j&&j.ok){ok++;li(k,'✓ sent','ok')}else li(k,'✗ '+(j&&j.error||'not accepted'),'bad');next()})
-   .catch(function(e){li(k,'✗ could not send — check internet','bad');next()})})()};
+else post({action:'publicInfo',k:K}).then(function(j){if(!j||!j.ok){$('ttl').textContent='';fail(j&&j.error||'This upload link is not valid or has expired.');return}
+  INFO=j;$('ttl').textContent=j.title||'';validity();var kind=j.kind==='h'?'h':'w';how(kind);$('foot').style.display='block';
+  if(kind==='h'){$('h1').textContent='Claim handler — documents & photos';$('hMode').style.display='block'}else{$('h1').textContent='Upload documents & photos';$('wMode').style.display='block'}})
+ .catch(function(){$('ttl').textContent='';fail('Could not connect. Please check the internet connection and open the link again.')});
+function used(){if(INFO.left!=null){INFO.left=Math.max(0,INFO.left-1);validity()}}
+/* ---------- files ---------- */
+function shrink(f,side,q){return new Promise(function(res){if(!/^image\/(jpeg|png|webp|heic|heif)$/i.test(f.type)||f.size<500000&&/jpe?g/i.test(f.type))return res(null);var u=URL.createObjectURL(f),im=new Image();
+ im.onload=function(){var s=Math.min(1,side/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);var d=c.toDataURL('image/jpeg',q);res({mime:'image/jpeg',data:d.slice(d.indexOf(',')+1),ext:'.jpg'})};im.onerror=function(){res(null)};im.src=u})}
+function raw(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){var s=String(r.result),m=/\.[A-Za-z0-9]{1,5}$/.exec(f.name||'');res({mime:f.type||'application/octet-stream',data:s.slice(s.indexOf(',')+1),ext:m?m[0].toLowerCase():''})};r.onerror=function(){rej(r.error)};r.readAsDataURL(f)})}
+function send(f,name,sub,side){if(f.size>MAXB)return Promise.reject(new Error('larger than 20 MB'));
+ return shrink(f,side||1800,0.86).then(function(x){return x||raw(f)}).then(function(p){var nm=name?name+p.ext:(String(f.name||'file').replace(/\.[^.]+$/,'')+p.ext);
+  var once=function(){return post({action:'publicUpload',k:K,fileName:nm,mime:p.mime,data:p.data,sub:sub||'Others'})};
+  return once().catch(function(){return new Promise(function(r){setTimeout(r,2500)}).then(once)})}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');used();return j})}
+/* ---------- workshop / others ---------- */
+var files=[];
+function li(i,t,c){var l=$('list').children[i];l.lastChild.textContent=t;l.lastChild.className=c}
+$('f').onchange=function(){files=[].slice.call(this.files||[]);var ul=$('list');ul.innerHTML='';
+ files.forEach(function(f){var l=document.createElement('li');var n=document.createElement('b');n.textContent=f.name;var s=document.createElement('span');s.className='wait';s.textContent=f.size>MAXB?'too large':'ready';l.appendChild(n);l.appendChild(s);ul.appendChild(l)});
+ $('go').disabled=!files.length};
+$('go').onclick=function(){var btn=this;btn.disabled=true;var i=0,ok=0;
+ (function next(){if(i>=files.length){btn.textContent=ok?'✓ Done — '+ok+' file(s) sent. Choose more to upload again':'Upload';btn.disabled=true;files=[];$('f').value='';return}
+  var k=i++,f=files[k];if(f.size>MAXB){li(k,'too large','bad');return next()}li(k,'uploading…','wait');
+  send(f,'','Others').then(function(){ok++;li(k,'✓ sent','ok')}).catch(function(e){li(k,'✗ '+(e&&e.message||'could not send — check internet'),'bad')}).then(next)})()};
+/* ---------- claim handler: survey photos ---------- */
+var pq=Promise.resolve(),pn=0;
+$('pf').onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';var ul=$('plist');
+ fs.forEach(function(f){var n=++pn,l=document.createElement('li');l.innerHTML='<b></b><span class="wait">waiting…</span>';l.firstChild.textContent=f.name||('Photo '+n);ul.appendChild(l);
+  pq=pq.then(function(){l.lastChild.textContent='uploading…';return send(f,'Photo_'+stamp()+'_'+n,'Survey Photographs',1800).then(function(){l.lastChild.textContent='✓ sent';l.lastChild.className='ok'}).catch(function(e){l.lastChild.textContent='✗ '+(e&&e.message||'not sent');l.lastChild.className='bad'})})})};
+/* ---------- claim handler: documents (read on this phone with Tesseract.js + pdf.js) ---------- */
+var TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',PDFW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+var DOCS={dl:{n:'Driving Licence',file:'DL',p:'parseDL',k:['dl','dn','dob','dli','dlv','dla','dlc']},
+ rc:{n:'RC',file:'RC',p:'parseRC',k:['reg','owner','chas','eng','rci','rcv','fit','tax','fuel','make','yr','cc','seat','unl','gvw','vtype','rto','hpa']},
+ permit:{n:'Permit',file:'Permit',p:'parsePermit',k:['reg','pmi','perm','pai','pav','route']},
+ fitness:{n:'Fitness certificate',file:'Fitness',p:'parseFitness',k:['reg','chas','eng','fti','fit']},
+ policy:{n:'Policy',file:'Policy',p:'parsePolicy',k:['policy','insurer','insured','ptype','pfrom','pto','tpf','tpt','idv','ncb','addon']},
+ other:{n:'Other document',file:'Document',p:'',k:[]}};
+var LABEL={dl:'DL No',dn:'Driver name',dob:'Date of birth',dli:'DL issue date',dlv:'DL valid upto',dla:'Issuing authority',dlc:'Classes authorised',
+ reg:'Registration no',owner:'Registered owner',chas:'Chassis no',eng:'Engine no',rci:'Registration date',rcv:'RC valid upto',fit:'Fitness valid upto',fti:'Fitness issue date',tax:'Tax valid upto',
+ fuel:'Fuel type',make:'Make / model',yr:'Mfg year',cc:'Cubic capacity (cc)',seat:'Seating capacity',unl:'Unladen weight (kg)',gvw:'GVW (kg)',vtype:'Type of vehicle',rto:'RTO',hpa:'Hypothecation',
+ pmi:'Permit issue date',perm:'Permit valid upto',pai:'Authorisation issue date',pav:'Authorisation valid upto',route:'Route / area',
+ policy:'Policy no',insurer:'Insurer',insured:'Insured name',ptype:'Policy type',pfrom:'OD policy from',pto:'OD policy upto',tpf:'TP policy from',tpt:'TP policy upto',idv:'IDV (₹)',ncb:'NCB',addon:'Add-on covers'};
+var INS=['The New India Assurance Co. Ltd.','United India Insurance Co. Ltd.','The Oriental Insurance Co. Ltd.','National Insurance Co. Ltd.','ICICI Lombard General Insurance Co. Ltd.','HDFC ERGO General Insurance Co. Ltd.','Bajaj Allianz General Insurance Co. Ltd.','Tata AIG General Insurance Co. Ltd.','Reliance General Insurance Co. Ltd.','SBI General Insurance Co. Ltd.','IFFCO Tokio General Insurance Co. Ltd.','Cholamandalam MS General Insurance Co. Ltd.','Future Generali India Insurance Co. Ltd.','Universal Sompo General Insurance Co. Ltd.','Royal Sundaram General Insurance Co. Ltd.','Liberty General Insurance Ltd.','Shriram General Insurance Co. Ltd.','Kotak Mahindra General Insurance Co. Ltd.','Magma HDI General Insurance Co. Ltd.','Go Digit General Insurance Ltd.','Acko General Insurance Ltd.','Navi General Insurance Ltd.','Zuno General Insurance Ltd.'];
+var DATEK=/^(dob|dli|dlv|rci|rcv|fit|fti|tax|pmi|perm|pai|pav|pfrom|pto|tpf|tpt)$/;
+function load(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=function(){rej(new Error('Could not load the reader — check the internet.'))};document.head.appendChild(s)})}
+var wP=null;function worker(prog){if(!wP)wP=(window.Tesseract?Promise.resolve():load(TESS)).then(function(){return Tesseract.createWorker('eng',1,{logger:function(m){if(m&&m.status&&prog)prog(m.status,m.progress)}})})
+ .then(function(w){return w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'}).then(function(){return w})}).catch(function(e){wP=null;throw e});return wP}
+var pdfP=null;function pdfLib(){if(!pdfP)pdfP=(window.pdfjsLib?Promise.resolve():load(PDFJS)).then(function(){pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;return pdfjsLib}).catch(function(e){pdfP=null;throw e});return pdfP}
+function prep(src){var w=src.naturalWidth||src.width,h=src.naturalHeight||src.height,sc=Math.min(2.2,Math.max(1,2000/Math.max(w,h)));if(Math.max(w,h)*sc>3000)sc=3000/Math.max(w,h);
+ var c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);var x=c.getContext('2d');x.drawImage(src,0,0,c.width,c.height);
+ var d=x.getImageData(0,0,c.width,c.height),p=d.data,hist=new Array(256).fill(0),n=p.length/4,i,g;
+ for(i=0;i<p.length;i+=4){g=(p[i]*299+p[i+1]*587+p[i+2]*114)/1000|0;p[i]=g;hist[g]++}
+ var lo=0,hi=255,acc=0;while(lo<255&&(acc+=hist[lo])<n*0.02)lo++;acc=0;while(hi>0&&(acc+=hist[hi])<n*0.02)hi--;if(hi<=lo){lo=0;hi=255}
+ for(i=0;i<p.length;i+=4){g=Math.max(0,Math.min(255,(p[i]-lo)*255/(hi-lo)));p[i]=p[i+1]=p[i+2]=g}x.putImageData(d,0,0);return c}
+function img(f){return new Promise(function(res,rej){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){res(im)};im.onerror=function(){rej(new Error('This picture could not be opened.'))};im.src=u})}
+function readPdf(f,prog){return pdfLib().then(function(lib){return f.arrayBuffer().then(function(b){return lib.getDocument({data:b}).promise})}).then(function(doc){var pages=[],n=Math.min(doc.numPages,4),ch=Promise.resolve();
+ for(var i=1;i<=n;i++)(function(i){ch=ch.then(function(){return doc.getPage(i).then(function(pg){return pg.getTextContent().then(function(tc){var lines={},keys=[];
+  tc.items.forEach(function(it){var y=Math.round(it.transform[5]/3);if(!lines[y]){lines[y]=[];keys.push(y)}lines[y].push(it)});keys.sort(function(a,b){return b-a});
+  var t=keys.map(function(k){return lines[k].sort(function(a,b){return a.transform[4]-b.transform[4]}).map(function(it){return it.str}).join(' ')}).join('\n');pages.push(t);
+  if(t.replace(/\s/g,'').length<40){prog('Scanned PDF — reading the picture',0);var vp=pg.getViewport({scale:2}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+   return pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise.then(function(){return worker(prog)}).then(function(w){return w.recognize(prep(c))}).then(function(r){pages[pages.length-1]=r.data.text})}})})})})(i);
+ return ch.then(function(){return pages.join('\n')})})}
+function textOf(f,prog){if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name||''))return readPdf(f,prog);return img(f).then(function(im){return worker(prog).then(function(w){return w.recognize(prep(im))})}).then(function(r){return r.data.text})}
+var cur='',seq=0;
+document.querySelectorAll('.docs button').forEach(function(b){b.onclick=function(){cur=b.dataset.d;$('df').value='';$('df').click()}});
+$('df').onchange=function(){var fs=[].slice.call(this.files||[]),d=cur;this.value='';if(!fs.length||!DOCS[d])return;doc(d,fs)};
+function doc(d,fs){var D=DOCS[d],id='doc'+(++seq),box=document.createElement('div');box.className='doc';box.id=id;
+ box.innerHTML='<div class="hd"><b>'+esc(D.n)+'</b><span class="note">'+fs.length+' file(s)</span></div><div class="st up wait">Uploading…</div>'+(D.p?'<div class="st rd wait">Waiting to read…</div><div class="bar"><i></i></div>':'')+'<div class="frm"></div>';
+ $('docList').insertBefore(box,$('docList').firstChild);var Q=function(s){return box.querySelector(s)};
+ var st=stamp(),ok=0,bad=[];
+ var ups=fs.reduce(function(p,f,i){return p.then(function(){return send(f,D.file+'_'+st+(fs.length>1?'_'+(i+1):''),'Documents',2200).then(function(){ok++}).catch(function(e){bad.push((f.name||'file')+': '+(e&&e.message||e))})})},Promise.resolve())
+  .then(function(){var u=Q('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' file(s) saved in the claim folder'});
+ if(!D.p){ups.then(function(){if(!bad.length)mark(d)});return}
+ var prog=function(s,p){var r=Q('.rd');r.textContent='Reading the '+D.n+'… '+(s==='recognizing text'&&p?Math.round(p*100)+'%':s.replace(/^loading /,'loading '));Q('.bar i').style.width=Math.round((p||0)*100)+'%'};
+ var txt='';fs.reduce(function(p,f){return p.then(function(){return textOf(f,prog).then(function(t){txt+='\n'+t})})},Promise.resolve())
+  .then(function(){var f={};try{f=AIRDOC[D.p](txt,{insurers:INS})||{}}catch(e){f={}}Q('.bar').style.display='none';var n=Object.keys(f).length,r=Q('.rd');
+   r.className='st rd '+(n?'ok':'bad');r.textContent=n?'✓ '+n+' detail(s) read — please check and tap Send details':'Could not read the details clearly. Type them below, or the office will enter them from the file.';form(d,box,f)})
+  .catch(function(e){Q('.bar').style.display='none';var r=Q('.rd');r.className='st rd bad';r.textContent='Could not read this file ('+(e&&e.message||e)+'). Type the details below or leave it for the office.';form(d,box,{})})}
+function form(d,box,f){var D=DOCS[d],fr=box.querySelector('.frm');
+ fr.innerHTML='<div class="fl">'+D.k.map(function(k){var v=f[k]||'';return '<div><label for="'+box.id+'_'+k+'">'+esc(LABEL[k]||k)+'</label><input id="'+box.id+'_'+k+'" data-k="'+k+'" type="'+(DATEK.test(k)?'date':'text')+'" value="'+esc(v)+'"'+(v?' class="got"':'')+'></div>'}).join('')+'</div><button class="wide snd">Send details</button><div class="st sres"></div>';
+ var btn=fr.querySelector('.snd');btn.onclick=function(){var o={},n=0;fr.querySelectorAll('input[data-k]').forEach(function(i){var v=i.value.trim();if(v){o[i.dataset.k]=v;n++}});
+  var r=fr.querySelector('.sres');if(!n){r.className='st sres bad';r.textContent='Nothing to send — type at least one detail.';return}
+  btn.disabled=true;r.className='st sres wait';r.textContent='Sending…';
+  post({action:'publicExtract',k:K,doc:d,fields:o}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');r.className='st sres ok';r.textContent='✓ '+n+' detail(s) sent to the office. You can correct and send again if needed.';btn.disabled=false;btn.textContent='Send again';mark(d)})
+   .catch(function(e){btn.disabled=false;r.className='st sres bad';r.textContent='✗ '+(e&&e.message||'Could not send — check internet and tap again')})}}
+function mark(d){var b=document.querySelector('.docs button[data-d="'+d+'"]');if(b)b.classList.add('done')}
 </script></body></html>
