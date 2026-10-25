@@ -17,6 +17,11 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
 .fl input,.fl select{width:100%;font:inherit;font-size:15px;padding:8px 10px;border:1px solid #c9d5e2;border-radius:9px;background:#fff}.fl input.got{border-color:#7cc59a;background:#f3fbf6}
 .bar{height:6px;background:#e2e8f0;border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;width:0;background:#1769aa;transition:width .3s}
 @media(min-width:520px){.fl{grid-template-columns:1fr 1fr}}
+.fl select.got{border-color:#7cc59a;background:#f3fbf6}.fl .wide2{grid-column:1/-1}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:#172b4d;border:1px solid #c9d5e2;border-radius:999px;padding:5px 10px;margin:0;background:#fff}
+.chips label.on{background:#e7f6ec;border-color:#7cc59a}.fl .chips input{width:auto;margin:0;padding:0;flex:0 0 auto}.fl .chips label{display:inline-flex;font-size:13px;color:#172b4d;margin:0}.hint{font-size:11px;color:#b45309;margin-top:2px}
+.docs button b{position:absolute;top:5px;right:6px;background:#1769aa;color:#fff;border-radius:999px;font-size:11px;padding:0 6px;line-height:18px}.docs button{position:relative}
+.vres{font-weight:800;border-radius:9px;padding:6px 10px;margin-top:8px;font-size:14px}.vres.match{background:#e7f6ec;color:#166534}.vres.partial{background:#fff6dc;color:#92400e}.vres.mismatch{background:#fde8e8;color:#b91c1c}.vres.unknown{background:#eef2f6;color:#475569}.cands{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cands button{background:#fff;color:#1769aa;border:1px solid #9cc2e5;padding:5px 9px;font-size:13px;border-radius:999px}
+.pl{margin-top:10px}.pl .cat{font-weight:700;font-size:14px;margin-top:8px}.pl .row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 2px;border-bottom:1px solid #eef2f6}
 </style></head><body><div class="w">
 <div class="top"><h1 id="h1">Upload documents &amp; photos</h1><p id="ttl">Checking the link…</p><p id="val" class="val" style="display:none"></p></div>
 <div id="bad" class="card err" style="display:none"></div>
@@ -29,8 +34,12 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
  <div class="card"><h2>1 · Documents</h2><p class="note">Tap the document, then take a clear photo or choose the PDF. You can select the front and back together.</p>
   <div class="docs"><button data-d="dl"><span>🪪</span>Driving Licence</button><button data-d="rc"><span>🚗</span>RC</button><button data-d="permit"><span>📜</span>Permit</button><button data-d="fitness"><span>✅</span>Fitness</button><button data-d="policy"><span>🛡️</span>Policy</button><button data-d="other"><span>📄</span>Other document</button></div>
   <input type="file" id="df" multiple accept="image/*,application/pdf,.pdf" style="display:none"><div id="docList"></div></div>
- <div class="card"><h2>2 · Survey photos</h2><p class="note">Photos of the vehicle and damages. They upload as soon as you select them.</p>
-  <label class="pick" for="pf" style="margin-top:10px">📷 Add photos</label><input type="file" id="pf" multiple accept="image/*" style="display:none"><ul id="plist"></ul></div>
+ <div class="card"><h2>2 · Survey photos</h2><p class="note">Tap the stage, then take or select the photos. They upload by themselves into that folder.</p>
+  <div class="docs" id="cats"><button data-c="Crash Photo"><span>💥</span>Crash Photo</button><button data-c="Dismantle"><span>🔧</span>Dismantle</button><button data-c="Status 1"><span>1️⃣</span>Status 1</button><button data-c="Status 2"><span>2️⃣</span>Status 2</button><button data-c="Status 3"><span>3️⃣</span>Status 3</button><button data-c="Status 4"><span>4️⃣</span>Status 4</button><button data-c="Resurvey"><span>🔁</span>Resurvey</button></div>
+  <input type="file" id="pf" multiple accept="image/*" style="display:none"><div id="plist" class="pl"></div></div>
+ <div class="card"><h2>3 · Chassis &amp; Engine — physical verification</h2><p class="note">Clean the stamping, take a sharp close-up in good light (use the flash if needed). The number is read and matched with the RC.</p>
+  <div class="docs" style="grid-template-columns:1fr 1fr"><button data-v="chas"><span>🔩</span>Chassis No.<br><small style="font-weight:600">stamping photo</small></button><button data-v="eng"><span>⚙️</span>Engine No.<br><small style="font-weight:600">stamping photo</small></button></div>
+  <input type="file" id="vf" multiple accept="image/*" capture="environment" style="display:none"><div id="vList"></div></div>
 </div>
 <p class="note" id="foot" style="display:none">Files go directly and securely to the surveyor’s office. You cannot see, change or delete files already sent.</p>
 </div>
@@ -77,7 +86,7 @@ function parseDL(raw){var t=norm(raw),U=t.toUpperCase(),f={};
   var all=dates(t).map(function(d){return d.v}).sort();
   if(!f.dob&&all.length&&all[0]<addYears(today,-16))f.dob=all[0];
   if(!f.dlv&&all.length&&all[all.length-1]>today)f.dlv=all[all.length-1];
-  var au=textAfter(t,/(?:Issuing|Licensing)\s*Authority|Issued\s*By|\bRTO\b|Licensing\s*Auth\.?/,/[A-Za-z][A-Za-z ,.\-()]{2,40}/);
+  var au=textAfter(t,/(?:Issuing|Licensing|Licencing)\s*Auth(?:ority|\.)?/,/[A-Za-z][A-Za-z ,.\-()]{2,40}/)||textAfter(t,/\bRTO\b|Issued\s*By/,/[A-Za-z][A-Za-z ,.\-()]{2,40}/);if(au)au=au.split(/\n/)[0];
   if(au)f.dla=au.replace(/\s+/g,' ').replace(/[ ,.\-]+$/,'').toUpperCase();
   var cls=[],has=function(re){return re.test(U)};
   if(has(/\bMC\s*50\s*CC\b/))cls.push('MC 50CC');
@@ -147,9 +156,9 @@ var ADDONS=[['Zero Depreciation (ZD)',/ZERO\s*DEP|NIL\s*DEP|DEPRECIATION\s*(?:WA
 function period(t,lab){var re=new RegExp('(?:'+lab+')[\\s\\S]{0,140}?','ig'),m;while((m=re.exec(t))){var seg=t.slice(m.index,m.index+220),d=dates(seg);if(d.length>=2)return [d[0].v,d[1].v]}return null}
 function parsePolicy(raw,opts){var t=norm(raw),U=t.toUpperCase(),f={};opts=opts||{};
   var pn=textAfter(U,/POLICY\s*(?:NO|NUMBER|#)\.?|POLICY\s*\/\s*CERTIFICATE\s*NO\.?|CERTIFICATE\s*(?:CUM\s*POLICY\s*)?NO\.?/,/[A-Z0-9][A-Z0-9\/\-]{5,34}/);
-  if(pn)f.policy=pn.replace(/[\-\/]+$/,'');
+  if(pn&&/\d{3}/.test(pn))f.policy=pn.replace(/[\-\/]+$/,'');
   var od=period(t,'Own\\s*Damage|\\bOD\\b(?:\\s*Cover)?(?:\\s*Period)?'),tp=period(t,'Third\\s*Party|\\bTP\\b(?:\\s*Cover)?(?:\\s*Period)?|Liability'),gen=period(t,'Period\\s*of\\s*Insurance|Policy\\s*Period|Insurance\\s*Period|Valid(?:ity)?\\s*From|\\bFrom\\b');
-  var o=od||gen;if(o){f.pfrom=o[0];f.pto=o[1]}if(tp&&(!od||tp[0]!==od[0]||tp[1]!==od[1])){f.tpf=tp[0];f.tpt=tp[1]}
+  var o=od||gen;if(o){f.pfrom=o[0];f.pto=o[1]}if(tp){f.tpf=tp[0];f.tpt=tp[1]}
   var ins=lineAfter(t,/Insured'?s?\s*Name|Name\s*of\s*(?:the\s*)?Insured|Policy\s*Holder(?:'s)?\s*(?:Name)?|Proposer\s*Name|\bInsured\b/i);if(cleanName(ins))f.insured=cleanName(ins).replace(/^(MR|MRS|MS|M\/S|SHRI|SMT)\.?\s+/,'');
   var idv=U.match(/TOTAL\s*IDV[^0-9]{0,30}([\d,]{4,12}(?:\.\d{1,2})?)/)||U.match(/(?:\bIDV\b|INSURED'?S?\s*DECLARED\s*VALUE)[^0-9]{0,40}([\d,]{4,12}(?:\.\d{1,2})?)/);
   if(idv){var n=Math.round(+idv[1].replace(/,/g,''));if(n>=5000)f.idv=String(n)}
@@ -215,7 +224,20 @@ function parseFitness(raw){var t=norm(raw),U=t.toUpperCase(),f={};
   if(f.fit&&f.fti&&f.fit<=f.fti){var x=f.fti;f.fti=f.fit;f.fit=x}
   return clean(f)}
 
-G.AIRDOC={parsePermit:parsePermit,parseFitness:parseFitness,parseDL:parseDL,parseRC:parseRC,parsePolicy:parsePolicy,parseChassisPhoto:parseChassisPhoto,compareChassis:compareChassis,dates:dates};
+
+/* ---------- Engine no. stamping (photo of the engine block) ---------- */
+function eclean(x){return String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function parseEnginePhoto(raw){var U=norm(raw).toUpperCase(),cand=[];
+  U.replace(/[^A-Z0-9\n ]/g,' ').split(/\s+/).forEach(function(x){x=eclean(x);if(x.length>=6&&x.length<=16&&/\d/.test(x)&&/[A-Z0-9]/.test(x)&&!/^\d{1,4}$/.test(x))cand.push(x)});
+  /* neighbouring pieces split by a space: join pairs too */
+  var parts=U.replace(/[^A-Z0-9 \n]/g,' ').split(/\n/);parts.forEach(function(l){var w=l.trim().split(/\s+/).map(eclean).filter(Boolean);for(var i=0;i+1<w.length;i++){var j=w[i]+w[i+1];if(j.length>=8&&j.length<=16&&/\d/.test(j)&&/[A-Z]/.test(j))cand.push(j)}});
+  cand=cand.filter(function(v,i,a){return a.indexOf(v)===i});
+  cand.sort(function(a,b){var sa=(/[A-Z]/.test(a)&&/\d/.test(a)?2:0)-Math.abs(a.length-11)/4,sb=(/[A-Z]/.test(b)&&/\d/.test(b)?2:0)-Math.abs(b.length-11)/4;return sb-sa});
+  return {engine:cand[0]||'',candidates:cand.slice(0,5),raw:eclean(U)}}
+function compareEngine(a,b,raw){var fx=function(x){return eclean(x).replace(/O/g,'0').replace(/[IL]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2')};a=fx(a);b=fx(b);raw=fx(raw);if(!b)return 'unknown';
+  if(a&&a===b||raw&&raw.indexOf(b)>=0)return 'match';var t5=b.slice(-5);if(t5.length===5&&(a.indexOf(t5)>=0||raw.indexOf(t5)>=0))return 'partial';if(!a&&!raw)return 'unknown';return 'mismatch'}
+
+G.AIRDOC={parseEnginePhoto:parseEnginePhoto,compareEngine:compareEngine,parsePermit:parsePermit,parseFitness:parseFitness,parseDL:parseDL,parseRC:parseRC,parsePolicy:parsePolicy,parseChassisPhoto:parseChassisPhoto,compareChassis:compareChassis,dates:dates};
 })(typeof window!=='undefined'?window:globalThis);
 
 </script>
@@ -234,7 +256,7 @@ function stamp(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')
 function validity(){if(!INFO.exp)return;var days=Math.max(0,Math.ceil((INFO.exp-Date.now())/86400000)),v=$('val');v.style.display='inline-block';
  v.textContent='⏳ Valid until '+fdt(INFO.exp)+' ('+days+(days===1?' day':' days')+' left)'+(INFO.left!=null?' · '+INFO.left+' uploads left':'')}
 function how(kind){var h=$('how');h.style.display='block';
- h.innerHTML=kind==='h'?'<h2>How to use this link</h2><ol><li><b>Documents:</b> tap <b>Driving Licence, RC, Permit, Fitness</b> or <b>Policy</b> → take a clear photo (flat, good light, all four corners visible) or choose the PDF.</li><li>The details are read on this phone in a few seconds. <b>Check them, correct anything wrong</b>, then tap <b>Send details</b>. The office Survey Report is filled automatically.</li><li><b>Survey photos:</b> tap <b>Add photos</b> and select them. They upload by themselves.</li><li>Wait until every item shows <b class="ok">✓</b> before closing this page.</li></ol><p class="note">Photos, PDF · up to 20 MB each. You can open this link again and add more until it expires.</p>'
+ h.innerHTML=kind==='h'?'<h2>How to use this link</h2><ol><li><b>Documents:</b> tap <b>Driving Licence, RC, Permit, Fitness</b> or <b>Policy</b> → take a clear photo (flat, good light, all four corners visible) or choose the PDF.</li><li>The details are read on this phone in a few seconds. <b>Check them, correct anything wrong</b>, then tap <b>Send details</b>. The office Survey Report is filled automatically.</li><li><b>Survey photos:</b> tap the stage — <b>Crash Photo, Dismantle, Status 1–4</b> or <b>Resurvey</b> — and take or select the photos. They upload by themselves.</li><li><b>Chassis &amp; Engine:</b> tap <b>Chassis No.</b> or <b>Engine No.</b> and photograph the stamping on the vehicle. Check the number read, then tap <b>Send</b> — it is matched with the RC.</li><li>Wait until every item shows <b class="ok">✓</b> before closing this page.</li></ol><p class="note">Photos, PDF · up to 20 MB each. You can open this link again and add more until it expires.</p>'
  :'<h2>How to upload</h2><ol><li>Tap <b>Choose photos or files</b>.</li><li>Select photos, PDF, Word or Excel files (up to 20 MB each). You can select many at once.</li><li>Tap <b>Upload</b> and wait until each file shows <b class="ok">✓ sent</b>.</li></ol><p class="note">You can open this link again and upload more until it expires.</p>'}
 if(!K||!API)fail('This upload link is incomplete. Please ask the surveyor to send it again.');
 else post({action:'publicInfo',k:K}).then(function(j){if(!j||!j.ok){$('ttl').textContent='';fail(j&&j.error||'This upload link is not valid or has expired.');return}
@@ -260,66 +282,152 @@ $('go').onclick=function(){var btn=this;btn.disabled=true;var i=0,ok=0;
  (function next(){if(i>=files.length){btn.textContent=ok?'✓ Done — '+ok+' file(s) sent. Choose more to upload again':'Upload';btn.disabled=true;files=[];$('f').value='';return}
   var k=i++,f=files[k];if(f.size>MAXB){li(k,'too large','bad');return next()}li(k,'uploading…','wait');
   send(f,'','Others').then(function(){ok++;li(k,'✓ sent','ok')}).catch(function(e){li(k,'✗ '+(e&&e.message||'could not send — check internet'),'bad')}).then(next)})()};
-/* ---------- claim handler: survey photos ---------- */
-var pq=Promise.resolve(),pn=0;
-$('pf').onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';var ul=$('plist');
- fs.forEach(function(f){var n=++pn,l=document.createElement('li');l.innerHTML='<b></b><span class="wait">waiting…</span>';l.firstChild.textContent=f.name||('Photo '+n);ul.appendChild(l);
-  pq=pq.then(function(){l.lastChild.textContent='uploading…';return send(f,'Photo_'+stamp()+'_'+n,'Survey Photographs',1800).then(function(){l.lastChild.textContent='✓ sent';l.lastChild.className='ok'}).catch(function(e){l.lastChild.textContent='✗ '+(e&&e.message||'not sent');l.lastChild.className='bad'})})})};
+/* ---------- claim handler: survey photos by stage ---------- */
+var pq=Promise.resolve(),pn=0,pcat='',PC={};
+document.querySelectorAll('#cats button').forEach(function(b){b.onclick=function(){pcat=b.dataset.c;$('pf').value='';$('pf').click()}});
+function catBox(c){var id='pc_'+c.replace(/\W/g,''),x=$(id);if(!x){x=document.createElement('div');x.id=id;x.innerHTML='<div class="cat"></div><div class="rows"></div>';$('plist').appendChild(x)}
+ var n=PC[c]||{ok:0,all:0};x.firstChild.textContent=c+' — '+n.ok+' of '+n.all+' sent';var b=document.querySelector('#cats button[data-c="'+c+'"]');if(b){var t=b.querySelector('b');if(!t){t=document.createElement('b');b.appendChild(t)}t.textContent=n.ok;if(n.ok)b.classList.add('done')}return x}
+$('pf').onchange=function(){var fs=[].slice.call(this.files||[]),c=pcat||'Crash Photo';this.value='';if(!fs.length)return;var sub=(+INFO.version||0)>=4?'Survey Photographs/'+c:'Survey Photographs',pre=c.replace(/\s+/g,'_');
+ fs.forEach(function(f){var n=++pn,box=catBox(c),r=document.createElement('div');r.className='row';r.innerHTML='<span></span><span class="wait">waiting…</span>';r.firstChild.textContent=f.name||('Photo '+n);box.lastChild.appendChild(r);
+  (PC[c]=PC[c]||{ok:0,all:0}).all++;catBox(c);
+  pq=pq.then(function(){r.lastChild.textContent='uploading…';return send(f,pre+'_'+stamp()+'_'+n,sub,1800).then(function(){r.lastChild.textContent='✓ sent';r.lastChild.className='ok';PC[c].ok++;catBox(c)}).catch(function(e){r.lastChild.textContent='✗ '+(e&&e.message||'not sent');r.lastChild.className='bad'})})})};
 /* ---------- claim handler: documents (read on this phone with Tesseract.js + pdf.js) ---------- */
 var TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',PDFW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-var DOCS={dl:{n:'Driving Licence',file:'DL',p:'parseDL',k:['dl','dn','dob','dli','dlv','dla','dlc']},
- rc:{n:'RC',file:'RC',p:'parseRC',k:['reg','owner','chas','eng','rci','rcv','fit','tax','fuel','make','yr','cc','seat','unl','gvw','vtype','rto','hpa']},
+/* fields, labels and drop-down options come from the AIR Survey Report data entry form (filled in when the page is built) */
+var FORM={"ref": {"l": "Ref No", "t": "text"}, "rdate": {"l": "Report Date", "t": "date"}, "cstat": {"l": "Claim Status", "t": "sel", "o": ["Survey Pending", "Survey Report & Admissibility Checking Pending", "Preliminary Assessment Pending", "Insurer Approval Pending", "Final Assessment Pending", "DO-Final Approval Pending", "Survey Fees Pending", "Close"]}, "sName": {"l": "Surveyor Name", "t": "text"}, "sLic": {"l": "Surveyor Licence No", "t": "text"}, "sQual": {"l": "Qualification line (letterhead)", "t": "text"}, "sMail": {"l": "Surveyor Email", "t": "text"}, "sMob": {"l": "Surveyor Mobile", "t": "text"}, "sIss": {"l": "Licence Issue Date", "t": "date"}, "sExp": {"l": "Licence Valid Upto", "t": "date"}, "sRem": {"l": "Licence Remarks (auto)", "t": "auto"}, "insurer": {"l": "Insurer", "t": "text"}, "insAddr": {"l": "Insurer Address", "t": "text"}, "policy": {"l": "Policy No", "t": "text"}, "ptype": {"l": "Policy Type", "t": "sel", "o": ["Private Car Bundled Policy", "Commercial Passenger Vehicle Bundled Policy", "Commercial Passenger Vehicle Liability Only Policy", "Commercial Goods Vehicle Bundled Policy", "Commercial Goods Vehicle Package Policy", "Commercial Goods Vehicle Stand Alone Policy", "Two Wheeler Bundled Policy", "Two Wheeler Liability Only Policy", "Misc - Bundled Policy", "Private Car Package Policy", "Private Car Standalone OD Policy", "Private Car Liability Only (Act) Policy", "Commercial Passenger Car Package Policy", "Commercial Passenger Car Standalone OD Policy", "Commercial Vehicle Liability Only (Act) Policy", "Two Wheeler Package Policy", "Two Wheeler Standalone OD Policy"]}, "addon": {"l": "Add-on Coverage (select multiple)", "t": "msel", "o": ["Zero Depreciation (ZD)", "Consumables Cover (CM)", "Engine Protector", "Return to Invoice (RTI)", "Roadside Assistance (RSA)", "NCB Protection", "Key Replacement", "Tyre Protect", "Personal Belongings", "Daily Allowance"]}, "pfrom": {"l": "OD Policy Issue Date", "t": "date"}, "pto": {"l": "OD Policy Valid Upto", "t": "date"}, "odr": {"l": "OD Policy Remarks (auto)", "t": "auto"}, "tpf": {"l": "TP Policy Issue Date", "t": "date"}, "tpt": {"l": "TP Policy Valid Upto", "t": "date"}, "tpr": {"l": "TP Policy Remarks (auto)", "t": "auto"}, "claim": {"l": "Claim No", "t": "text"}, "insured": {"l": "Insured Name", "t": "text"}, "hpa": {"l": "Hypothecation (HPA)", "t": "text"}, "ncb": {"l": "Carried NCB", "t": "sel", "o": ["", "20%", "25%", "35%", "45%", "50%"]}, "insAd": {"l": "Insured Address", "t": "text"}, "mob": {"l": "Insured Mobile No", "t": "text"}, "email": {"l": "Insured Email ID", "t": "email"}, "idv": {"l": "IDV (₹)", "t": "number"}, "idv75": {"l": "75% of IDV (₹) (auto)", "t": "auto"}, "ded": {"l": "Compulsory Deductible (₹)", "t": "number"}, "oex": {"l": "Other Excess (₹)", "t": "number"}, "reg": {"l": "Registration No", "t": "text"}, "owner": {"l": "Registered Owner Name (as per RC)", "t": "text"}, "ownr": {"l": "Owner vs Policy Holder (auto)", "t": "auto"}, "vtype": {"l": "Type of Vehicle", "t": "sel", "o": ["Motor Car – Private (LMV)", "Motor Car – Commercial Passenger (Cab/Taxi - LMV)", "Goods Carrier", "Passenger Bus", "Two Wheeler", "Other"]}, "rto": {"l": "Name of RTO", "t": "text"}, "make": {"l": "Make / Variant", "t": "text"}, "yr": {"l": "Mfg Year", "t": "text"}, "chas": {"l": "Chassis No", "t": "text"}, "eng": {"l": "Engine No", "t": "text"}, "fuel": {"l": "Fuel Type", "t": "sel", "o": ["Petrol", "Petrol+CNG", "CNG", "Diesel", "Battery", "Hybrid"]}, "odo": {"l": "Odometer Reading (km)", "t": "text"}, "gvw": {"l": "GVW (kg)", "t": "number"}, "unl": {"l": "Unladen Wt (kg)", "t": "number"}, "lcc": {"l": "Load Carrying Capacity (GVW – ULW) (auto)", "t": "auto"}, "cc": {"l": "Cubic Capacity (cc)", "t": "text"}, "seat": {"l": "Seating Capacity (incl. driver)", "t": "number"}, "rci": {"l": "RC Issue Date", "t": "date"}, "rcv": {"l": "RC Valid Upto", "t": "date"}, "rcr": {"l": "RC Remarks (auto)", "t": "auto"}, "txi": {"l": "Tax Issue Date", "t": "date"}, "tax": {"l": "Tax Valid Upto", "t": "date"}, "txr": {"l": "Tax Remarks (auto)", "t": "auto"}, "fti": {"l": "Fitness Issue Date", "t": "date"}, "fit": {"l": "Fitness Valid Upto", "t": "date"}, "ftr": {"l": "Fitness Remarks (auto)", "t": "auto"}, "pmi": {"l": "Permit Issue Date", "t": "date"}, "perm": {"l": "Permit Valid Upto", "t": "date"}, "pmr": {"l": "Permit Remarks (auto)", "t": "auto"}, "pai": {"l": "Permit Authorisation Issue Date", "t": "date"}, "pav": {"l": "Permit Authorisation Valid Upto", "t": "date"}, "par": {"l": "Authorisation Remarks (auto)", "t": "auto"}, "route": {"l": "Permitted Route / Area (for commercial vehicle)", "t": "text"}, "cv": {"l": "Chassis/Engine physically verified & tallied", "t": "check"}, "dn": {"l": "Driver Name", "t": "text"}, "dl": {"l": "DL No", "t": "text"}, "dla": {"l": "Issuing Authority", "t": "text"}, "dli": {"l": "DL Issue Date", "t": "date"}, "dlv": {"l": "DL Valid Upto", "t": "date"}, "dlr": {"l": "DL Remarks (auto)", "t": "auto"}, "dlc": {"l": "Classes Authorised (select multiple)", "t": "msel", "o": ["MC 50CC", "MCWOG", "MCWG", "LMV", "LMV-TR", "HMV", "HGMV", "HPMV/HTV", "Transport", "Transport Badge (Taxi/PSV)", "Tractor/Other"]}, "dob": {"l": "Date of Birth", "t": "date"}, "rel": {"l": "Relation with Insured", "t": "sel", "o": ["Self", "Relative", "Friend", "Paid Driver"]}, "dlp": {"l": "DL verified through Parivahan", "t": "check"}, "dol": {"l": "Date of Loss", "t": "date"}, "tol": {"l": "Time of Loss", "t": "text"}, "pol": {"l": "Place of Loss", "t": "text"}, "intim": {"l": "Date of Intimation", "t": "date"}, "dly": {"l": "Delay in Intimation (Date of Intimation – Date of Loss) (auto)", "t": "auto"}, "asg": {"l": "Survey Assigned On", "t": "date"}, "svd": {"l": "Date of Survey", "t": "date"}, "svp": {"l": "Place of Survey", "t": "text"}, "cpd": {"l": "Close Proximate Day (Date of Loss – OD Policy Start) (auto)", "t": "auto"}, "tpd": {"l": "Details of TPPI / TPPD / PS Report", "t": "area"}, "cause": {"l": "Cause & Circumstances", "t": "area"}, "parts": {"l": "Assessed Parts Amount (A)", "t": "number"}, "lab": {"l": "Assessed Labour Amount (B)", "t": "number"}, "tow": {"l": "Add: Towing / Labour", "t": "number"}, "sal": {"l": "Less: Salvage", "t": "number"}, "exc": {"l": "Less: Compulsory Excess", "t": "number"}, "aex": {"l": "Less: Additional Excess", "t": "number"}, "conc": {"l": "Concurrency of Damages & Payment Recommendation", "t": "area"}, "rep": {"l": "Repair Remarks", "t": "area"}, "fin": {"l": "Conclusion", "t": "area"}};
+var DOCS={dl:{n:'Driving Licence',file:'DL',p:'parseDL',k:['dn','dl','dla','dli','dlv','dlc','dob']},
+ rc:{n:'RC',file:'RC',p:'parseRC',k:['reg','owner','vtype','make','yr','chas','eng','fuel','cc','seat','unl','gvw','rto','rci','rcv','tax','fit','hpa']},
  permit:{n:'Permit',file:'Permit',p:'parsePermit',k:['reg','pmi','perm','pai','pav','route']},
  fitness:{n:'Fitness certificate',file:'Fitness',p:'parseFitness',k:['reg','chas','eng','fti','fit']},
- policy:{n:'Policy',file:'Policy',p:'parsePolicy',k:['policy','insurer','insured','ptype','pfrom','pto','tpf','tpt','idv','ncb','addon']},
+ policy:{n:'Policy',file:'Policy',p:'parsePolicy',k:['policy','insurer','ptype','addon','pfrom','pto','tpf','tpt','insured','hpa','ncb','idv']},
  other:{n:'Other document',file:'Document',p:'',k:[]}};
-var LABEL={dl:'DL No',dn:'Driver name',dob:'Date of birth',dli:'DL issue date',dlv:'DL valid upto',dla:'Issuing authority',dlc:'Classes authorised',
- reg:'Registration no',owner:'Registered owner',chas:'Chassis no',eng:'Engine no',rci:'Registration date',rcv:'RC valid upto',fit:'Fitness valid upto',fti:'Fitness issue date',tax:'Tax valid upto',
- fuel:'Fuel type',make:'Make / model',yr:'Mfg year',cc:'Cubic capacity (cc)',seat:'Seating capacity',unl:'Unladen weight (kg)',gvw:'GVW (kg)',vtype:'Type of vehicle',rto:'RTO',hpa:'Hypothecation',
- pmi:'Permit issue date',perm:'Permit valid upto',pai:'Authorisation issue date',pav:'Authorisation valid upto',route:'Route / area',
- policy:'Policy no',insurer:'Insurer',insured:'Insured name',ptype:'Policy type',pfrom:'OD policy from',pto:'OD policy upto',tpf:'TP policy from',tpt:'TP policy upto',idv:'IDV (₹)',ncb:'NCB',addon:'Add-on covers'};
 var INS=['The New India Assurance Co. Ltd.','United India Insurance Co. Ltd.','The Oriental Insurance Co. Ltd.','National Insurance Co. Ltd.','ICICI Lombard General Insurance Co. Ltd.','HDFC ERGO General Insurance Co. Ltd.','Bajaj Allianz General Insurance Co. Ltd.','Tata AIG General Insurance Co. Ltd.','Reliance General Insurance Co. Ltd.','SBI General Insurance Co. Ltd.','IFFCO Tokio General Insurance Co. Ltd.','Cholamandalam MS General Insurance Co. Ltd.','Future Generali India Insurance Co. Ltd.','Universal Sompo General Insurance Co. Ltd.','Royal Sundaram General Insurance Co. Ltd.','Liberty General Insurance Ltd.','Shriram General Insurance Co. Ltd.','Kotak Mahindra General Insurance Co. Ltd.','Magma HDI General Insurance Co. Ltd.','Go Digit General Insurance Ltd.','Acko General Insurance Ltd.','Navi General Insurance Ltd.','Zuno General Insurance Ltd.'];
-var DATEK=/^(dob|dli|dlv|rci|rcv|fit|fti|tax|pmi|perm|pai|pav|pfrom|pto|tpf|tpt)$/;
+function F(k){return FORM[k]||{l:k,t:'text'}}
+function lab(k){return String(F(k).l||k).replace(/\s*\((?:select multiple|incl\. driver)\)\s*/i,'').trim()}
+function nz(x){return String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function toks(x){return String(x||'').toUpperCase().replace(/[^A-Z0-9+ ]/g,' ').split(/\s+/).filter(function(w){return w.length>1})}
+/* pick the data entry option closest to what was read */
+var SYN={fuel:[[/PETROL\s*[\/+&]?\s*CNG|CNG\s*[\/+&]?\s*PETROL|BI-?FUEL/i,'Petrol+CNG'],[/ELECTRIC|BATTERY|\bBOV\b|\bEV\b/i,'Battery'],[/HYBRID/i,'Hybrid'],[/DIESEL/i,'Diesel'],[/\bCNG\b/i,'CNG'],[/PETROL|GASOLINE/i,'Petrol']],
+ ncb:[[/50/,'50%'],[/45/,'45%'],[/35/,'35%'],[/25/,'25%'],[/20/,'20%']]};
+function snap(k,v){var o=F(k).o;if(!o||!o.length||!v)return v;var V=String(v).trim(),hit=o.filter(function(x){return nz(x)===nz(V)})[0];if(hit)return hit;
+ var sy=(SYN[k]||[]).filter(function(r){return r[0].test(V)})[0];if(sy&&o.indexOf(sy[1])>=0)return sy[1];
+ var vt=toks(V),best='',bs=0;o.forEach(function(x){if(!x)return;var ot=toks(x),c=ot.filter(function(w){return vt.indexOf(w)>=0}).length,sc=c/Math.max(ot.length,vt.length);if(nz(x).indexOf(nz(V))>=0||nz(V).indexOf(nz(x))>=0)sc=Math.max(sc,0.7);if(sc>bs){bs=sc;best=x}});
+ return bs>=0.5?best:''}
+/* DL classes and add-on covers: also look for the codes anywhere in the text */
+var DLC=[['MC 50CC',/MC\s*50\s*CC/],['MCWOG',/MCWOG|MC\s*W\/?O\s*G(?:EAR)?/],['MCWG',/MCWG|MC\s*W(?:ITH)?\s*G(?:EAR)?\b/],['LMV-TR',/LMV[\s\-]*(?:TR|TRANS|NT?\-?TR)/],['LMV',/\bLMV(?![\s\-]*TR)/],['HMV',/\bHMV\b/],['HGMV',/\bHGMV\b/],['HPMV/HTV',/\bHPMV\b|\bHTV\b/],['Transport',/\bTRANS(?:PORT)?\b/],['Transport Badge (Taxi/PSV)',/\bBADGE\b|\bPSV\b/],['Tractor/Other',/TRACTOR|\bTRCTR\b|\bTRLR\b/]];
+function multi(k,v,text){var o=F(k).o||[],out=[],U=String(text||'').toUpperCase();
+ String(v||'').split(/\s*,\s*/).forEach(function(x){var m=snap(k,x);if(m&&out.indexOf(m)<0)out.push(m)});
+ if(k==='dlc')DLC.forEach(function(r){if(o.indexOf(r[0])>=0&&r[1].test(U)&&out.indexOf(r[0])<0)out.push(r[0])});
+ return out}
+/* policy type from the words on the policy, matched to the data entry list */
+function policyType(text,v){var U=String(text||'').toUpperCase(),o=F('ptype').o||[];
+ var cls=/TWO\s*WHEELER|MOTOR\s*CYCLE|SCOOTER|\b2\s*W\b/.test(U)?'TWO WHEELER':/GOODS\s*CARRY|GOODS\s*VEHICLE|\bGCV\b|CARRIER/.test(U)?'GOODS':/PASSENGER\s*CARRY|TAXI|\bPCV\b|MAXI\s*CAB/.test(U)?'PASSENGER':/MISC|SPECIAL\s*TYPE|\bMISD\b/.test(U)?'MISC':/PRIVATE\s*CAR|MOTOR\s*CAR/.test(U)?'PRIVATE CAR':'';
+ var cov=/STAND\s*-?\s*ALONE\s*(?:OWN\s*DAMAGE|OD)|\bSAOD\b|OWN\s*DAMAGE\s*ONLY/.test(U)?'STANDALONE':/BUNDLED|LONG\s*TERM|1\s*\+\s*[35]|3\s*YEARS?\s*TP|5\s*YEARS?\s*TP/.test(U)?'BUNDLED':/LIABILITY\s*ONLY|ACT\s*ONLY|\bTP\s*ONLY\b/.test(U)?'LIABILITY':/PACKAGE|COMPREHENSIVE/.test(U)?'PACKAGE':'';
+ var sc=function(x){var X=x.toUpperCase(),n=0;if(cls){if(cls==='GOODS'?/GOODS/.test(X):cls==='PASSENGER'?/PASSENGER/.test(X):X.indexOf(cls)>=0)n+=2;else return -1}if(cov&&X.indexOf(cov==='STANDALONE'?'STAND':cov)>=0)n+=1;return n};
+ var best='',bs=0;o.forEach(function(x){var n=sc(x);if(n>bs){bs=n;best=x}});return bs>=3||(bs>=2&&!cov)?best:(snap('ptype',v)||best)}
+function fit(d,f,text){var o={};Object.keys(f).forEach(function(k){var t=F(k).t;if(t==='msel'){var m=multi(k,f[k],text);if(m.length)o[k]=m.join(', ')}else if(t==='sel'){var v=k==='ptype'?policyType(text,f[k]):snap(k,f[k]);if(v)o[k]=v;else o['_raw_'+k]=f[k]}else o[k]=f[k]});
+ if(d==='dl'&&!o.dlc){var m=multi('dlc','',text);if(m.length)o.dlc=m.join(', ')}if(d==='policy'&&!o.ptype){var p=policyType(text,'');if(p)o.ptype=p}
+ ['seat','unl','gvw','idv','cc','yr'].forEach(function(k){if(o[k])o[k]=String(o[k]).replace(/[^\d.]/g,'')});return o}
 function load(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=function(){rej(new Error('Could not load the reader — check the internet.'))};document.head.appendChild(s)})}
-var wP=null;function worker(prog){if(!wP)wP=(window.Tesseract?Promise.resolve():load(TESS)).then(function(){return Tesseract.createWorker('eng',1,{logger:function(m){if(m&&m.status&&prog)prog(m.status,m.progress)}})})
- .then(function(w){return w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'}).then(function(){return w})}).catch(function(e){wP=null;throw e});return wP}
+var wP=null,PROG=null;function worker(){if(!wP)wP=(window.Tesseract?Promise.resolve():load(TESS)).then(function(){return Tesseract.createWorker('eng',1,{logger:function(m){if(m&&m.status&&PROG)PROG(m.status,m.progress)}})})
+ .then(function(w){return w.setParameters({preserve_interword_spaces:'1'}).then(function(){return w})}).catch(function(e){wP=null;throw e});return wP}
 var pdfP=null;function pdfLib(){if(!pdfP)pdfP=(window.pdfjsLib?Promise.resolve():load(PDFJS)).then(function(){pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;return pdfjsLib}).catch(function(e){pdfP=null;throw e});return pdfP}
-function prep(src){var w=src.naturalWidth||src.width,h=src.naturalHeight||src.height,sc=Math.min(2.2,Math.max(1,2000/Math.max(w,h)));if(Math.max(w,h)*sc>3000)sc=3000/Math.max(w,h);
- var c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);var x=c.getContext('2d');x.drawImage(src,0,0,c.width,c.height);
+/* clean-up before reading: enlarge, grey, stretch contrast; mode 'bw' = black & white (Otsu); rot = 0 / 90 / 270 */
+function prep(src,mode,rot){var w=src.naturalWidth||src.width,h=src.naturalHeight||src.height,sc=Math.min(2.5,Math.max(1,2200/Math.max(w,h)));if(Math.max(w,h)*sc>3200)sc=3200/Math.max(w,h);
+ var W=Math.round(w*sc),Hh=Math.round(h*sc),c=document.createElement('canvas'),x=c.getContext('2d');if(rot===90||rot===270){c.width=Hh;c.height=W}else{c.width=W;c.height=Hh}
+ x.translate(c.width/2,c.height/2);x.rotate((rot||0)*Math.PI/180);x.drawImage(src,-W/2,-Hh/2,W,Hh);x.setTransform(1,0,0,1,0,0);
  var d=x.getImageData(0,0,c.width,c.height),p=d.data,hist=new Array(256).fill(0),n=p.length/4,i,g;
  for(i=0;i<p.length;i+=4){g=(p[i]*299+p[i+1]*587+p[i+2]*114)/1000|0;p[i]=g;hist[g]++}
  var lo=0,hi=255,acc=0;while(lo<255&&(acc+=hist[lo])<n*0.02)lo++;acc=0;while(hi>0&&(acc+=hist[hi])<n*0.02)hi--;if(hi<=lo){lo=0;hi=255}
- for(i=0;i<p.length;i+=4){g=Math.max(0,Math.min(255,(p[i]-lo)*255/(hi-lo)));p[i]=p[i+1]=p[i+2]=g}x.putImageData(d,0,0);return c}
+ var thr=-1;if(mode==='bw'){var sum=0,sB=0,wB=0,mx=0;for(i=0;i<256;i++)sum+=i*hist[i];for(i=0;i<256;i++){wB+=hist[i];if(!wB)continue;var wF=n-wB;if(!wF)break;sB+=i*hist[i];var mB=sB/wB,mF=(sum-sB)/wF,b=wB*wF*(mB-mF)*(mB-mF);if(b>mx){mx=b;thr=i}}thr=(thr-lo)*255/(hi-lo)}
+ for(i=0;i<p.length;i+=4){g=Math.max(0,Math.min(255,(p[i]-lo)*255/(hi-lo)));if(thr>=0)g=g<thr?0:255;p[i]=p[i+1]=p[i+2]=g}x.putImageData(d,0,0);return c}
 function img(f){return new Promise(function(res,rej){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){res(im)};im.onerror=function(){rej(new Error('This picture could not be opened.'))};im.src=u})}
-function readPdf(f,prog){return pdfLib().then(function(lib){return f.arrayBuffer().then(function(b){return lib.getDocument({data:b}).promise})}).then(function(doc){var pages=[],n=Math.min(doc.numPages,4),ch=Promise.resolve();
+function ocr(canvas,psm){return worker().then(function(w){return w.setParameters({tessedit_pageseg_mode:String(psm)}).then(function(){return w.recognize(canvas)})}).then(function(r){return r.data.text||''})}
+/* read a picture several ways and keep the best: normal, column layout, black & white, then turned sideways if still poor */
+var PASSES=[{m:'g',psm:6,r:0,t:'reading'},{m:'g',psm:4,r:0,t:'second look'},{m:'bw',psm:6,r:0,t:'black & white'},{m:'g',psm:11,r:0,t:'scattered text'},{m:'g',psm:6,r:90,t:'turned right'},{m:'g',psm:6,r:270,t:'turned left'}];
+function count(o){return Object.keys(o).filter(function(k){return k.indexOf('_raw_')!==0}).length}
+function readImage(src,D,prog){var res=[],target=Math.max(3,Math.ceil(D.k.length*0.55)),i=0;
+ return new Promise(function(done,fail){(function next(){
+  var best=res.reduce(function(a,b){return count(b.f)>count(a.f)?b:a},{f:{}});
+  if(i>=PASSES.length||count(best.f)>=target||(i>=4&&count(best.f)>=2)){done(res);return}
+  var P=PASSES[i++];prog('Pass '+i+' · '+P.t,0);
+  ocr(prep(src,P.m,P.r),P.psm).then(function(t){var f={};try{f=fit(D.key,AIRDOC[D.p](t,{insurers:INS})||{},t)}catch(e){}res.push({t:t,f:f});next()}).catch(function(e){if(res.length)done(res);else fail(e)})})()})}
+/* merge the passes: a value read the same way more than once wins, otherwise the pass that read the most */
+function merge(list){var out={},votes={};list.sort(function(a,b){return count(b.f)-count(a.f)});
+ list.forEach(function(r,ri){Object.keys(r.f).forEach(function(k){var v=r.f[k],key=k+'\u0001'+nz(v);votes[key]=(votes[key]||{n:0,v:v,ri:ri});votes[key].n++})});
+ Object.keys(votes).forEach(function(key){var k=key.split('\u0001')[0],c=votes[key],o=out[k];if(!o||c.n>o.n||(c.n===o.n&&c.ri<o.ri))out[k]=c});
+ var f={};Object.keys(out).forEach(function(k){f[k]=out[k].v});return f}
+function readPdf(f,D,prog){return pdfLib().then(function(lib){return f.arrayBuffer().then(function(b){return lib.getDocument({data:b}).promise})}).then(function(doc){var pages=[],scans=[],n=Math.min(doc.numPages,4),ch=Promise.resolve();
  for(var i=1;i<=n;i++)(function(i){ch=ch.then(function(){return doc.getPage(i).then(function(pg){return pg.getTextContent().then(function(tc){var lines={},keys=[];
   tc.items.forEach(function(it){var y=Math.round(it.transform[5]/3);if(!lines[y]){lines[y]=[];keys.push(y)}lines[y].push(it)});keys.sort(function(a,b){return b-a});
   var t=keys.map(function(k){return lines[k].sort(function(a,b){return a.transform[4]-b.transform[4]}).map(function(it){return it.str}).join(' ')}).join('\n');pages.push(t);
-  if(t.replace(/\s/g,'').length<40){prog('Scanned PDF — reading the picture',0);var vp=pg.getViewport({scale:2}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
-   return pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise.then(function(){return worker(prog)}).then(function(w){return w.recognize(prep(c))}).then(function(r){pages[pages.length-1]=r.data.text})}})})})})(i);
- return ch.then(function(){return pages.join('\n')})})}
-function textOf(f,prog){if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name||''))return readPdf(f,prog);return img(f).then(function(im){return worker(prog).then(function(w){return w.recognize(prep(im))})}).then(function(r){return r.data.text})}
+  if(t.replace(/\s/g,'').length<60){var vp=pg.getViewport({scale:2.2}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;return pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise.then(function(){scans.push(c)})}})})})})(i);
+ return ch.then(function(){var text=pages.join('\n'),f={};try{f=fit(D.key,AIRDOC[D.p](text,{insurers:INS})||{},text)}catch(e){}var res=[{t:text,f:f}];
+  return scans.reduce(function(p,c,si){return p.then(function(){prog('Scanned PDF page '+(si+1)+' — reading the picture',0);return readImage(c,D,prog).then(function(r){res=res.concat(r)})})},Promise.resolve()).then(function(){return res})})})}
+function readFile(f,D,prog){if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name||''))return readPdf(f,D,prog);return img(f).then(function(im){return readImage(im,D,prog)})}
+Object.keys(DOCS).forEach(function(k){DOCS[k].key=k});
 var cur='',seq=0;
-document.querySelectorAll('.docs button').forEach(function(b){b.onclick=function(){cur=b.dataset.d;$('df').value='';$('df').click()}});
+document.querySelectorAll('.docs button[data-d]').forEach(function(b){b.onclick=function(){cur=b.dataset.d;$('df').value='';$('df').click()}});
 $('df').onchange=function(){var fs=[].slice.call(this.files||[]),d=cur;this.value='';if(!fs.length||!DOCS[d])return;doc(d,fs)};
 function doc(d,fs){var D=DOCS[d],id='doc'+(++seq),box=document.createElement('div');box.className='doc';box.id=id;
  box.innerHTML='<div class="hd"><b>'+esc(D.n)+'</b><span class="note">'+fs.length+' file(s)</span></div><div class="st up wait">Uploading…</div>'+(D.p?'<div class="st rd wait">Waiting to read…</div><div class="bar"><i></i></div>':'')+'<div class="frm"></div>';
- $('docList').insertBefore(box,$('docList').firstChild);var Q=function(s){return box.querySelector(s)};
+ $('docList').insertBefore(box,$('docList').firstChild);var Qb=function(s){return box.querySelector(s)};
  var st=stamp(),ok=0,bad=[];
  var ups=fs.reduce(function(p,f,i){return p.then(function(){return send(f,D.file+'_'+st+(fs.length>1?'_'+(i+1):''),'Documents',2200).then(function(){ok++}).catch(function(e){bad.push((f.name||'file')+': '+(e&&e.message||e))})})},Promise.resolve())
-  .then(function(){var u=Q('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' file(s) saved in the claim folder'});
+  .then(function(){var u=Qb('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' file(s) saved in the claim folder'});
  if(!D.p){ups.then(function(){if(!bad.length)mark(d)});return}
- var prog=function(s,p){var r=Q('.rd');r.textContent='Reading the '+D.n+'… '+(s==='recognizing text'&&p?Math.round(p*100)+'%':s.replace(/^loading /,'loading '));Q('.bar i').style.width=Math.round((p||0)*100)+'%'};
- var txt='';fs.reduce(function(p,f){return p.then(function(){return textOf(f,prog).then(function(t){txt+='\n'+t})})},Promise.resolve())
-  .then(function(){var f={};try{f=AIRDOC[D.p](txt,{insurers:INS})||{}}catch(e){f={}}Q('.bar').style.display='none';var n=Object.keys(f).length,r=Q('.rd');
+ var step='',prog=function(s,p){if(!/recognizing/.test(s))step=s;var r=Qb('.rd');r.textContent='Reading the '+D.n+' — '+(step||s)+(/recognizing/.test(s)&&p?' · '+Math.round(p*100)+'%':'');Qb('.bar i').style.width=Math.round((p||0)*100)+'%'};
+ var all=[];fs.reduce(function(p,f,fi){return p.then(function(){PROG=prog;return readFile(f,D,function(s,q){prog((fs.length>1?'file '+(fi+1)+' · ':'')+s,q)}).then(function(r){all=all.concat(r)})})},Promise.resolve())
+  .then(function(){PROG=null;var f=merge(all),text=all.map(function(r){return r.t}).join('\n');Qb('.bar').style.display='none';var n=count(f),r=Qb('.rd');
    r.className='st rd '+(n?'ok':'bad');r.textContent=n?'✓ '+n+' detail(s) read — please check and tap Send details':'Could not read the details clearly. Type them below, or the office will enter them from the file.';form(d,box,f)})
-  .catch(function(e){Q('.bar').style.display='none';var r=Q('.rd');r.className='st rd bad';r.textContent='Could not read this file ('+(e&&e.message||e)+'). Type the details below or leave it for the office.';form(d,box,{})})}
+  .catch(function(e){PROG=null;Qb('.bar').style.display='none';var r=Qb('.rd');r.className='st rd bad';r.textContent='Could not read this file ('+(e&&e.message||e)+'). Type the details below or leave it for the office.';form(d,box,{})})}
+function field(box,k,v,raw){var F0=F(k),id=box.id+'_'+k,t=F0.t,got=v?' got':'',h='';
+ if(t==='sel')h='<select id="'+id+'" data-k="'+k+'" class="'+got+'">'+[''].concat((F0.o||[]).filter(Boolean)).map(function(o){return '<option value="'+esc(o)+'"'+(o===v?' selected':'')+'>'+(o?esc(o):'— select —')+'</option>'}).join('')+'</select>'+(raw&&!v?'<div class="hint">Read “'+esc(raw)+'” — choose the matching option</div>':'');
+ else if(t==='msel'){var on=String(v||'').split(/\s*,\s*/);h='<div class="chips" data-k="'+k+'" data-m="1">'+(F0.o||[]).map(function(o){var c=on.indexOf(o)>=0;return '<label class="'+(c?'on':'')+'"><input type="checkbox" value="'+esc(o)+'"'+(c?' checked':'')+'>'+esc(o)+'</label>'}).join('')+'</div>'}
+ else h='<input id="'+id+'" data-k="'+k+'" type="'+(t==='date'?'date':t==='number'?'number':'text')+'"'+(t==='number'?' inputmode="decimal"':'')+' value="'+esc(v||'')+'" class="'+got+'">';
+ return '<div class="'+(t==='msel'?'wide2':'')+'"><label for="'+id+'">'+esc(lab(k))+'</label>'+h+'</div>'}
 function form(d,box,f){var D=DOCS[d],fr=box.querySelector('.frm');
- fr.innerHTML='<div class="fl">'+D.k.map(function(k){var v=f[k]||'';return '<div><label for="'+box.id+'_'+k+'">'+esc(LABEL[k]||k)+'</label><input id="'+box.id+'_'+k+'" data-k="'+k+'" type="'+(DATEK.test(k)?'date':'text')+'" value="'+esc(v)+'"'+(v?' class="got"':'')+'></div>'}).join('')+'</div><button class="wide snd">Send details</button><div class="st sres"></div>';
- var btn=fr.querySelector('.snd');btn.onclick=function(){var o={},n=0;fr.querySelectorAll('input[data-k]').forEach(function(i){var v=i.value.trim();if(v){o[i.dataset.k]=v;n++}});
-  var r=fr.querySelector('.sres');if(!n){r.className='st sres bad';r.textContent='Nothing to send — type at least one detail.';return}
+ fr.innerHTML='<div class="fl">'+D.k.map(function(k){return field(box,k,f[k]||'',f['_raw_'+k]||'')}).join('')+'</div><button class="wide snd">Send details</button><div class="st sres"></div>';
+ fr.querySelectorAll('.chips input').forEach(function(c){c.onchange=function(){c.parentElement.classList.toggle('on',c.checked)}});
+ var btn=fr.querySelector('.snd');btn.onclick=function(){var o={},n=0;
+  fr.querySelectorAll('input[data-k],select[data-k]').forEach(function(i){var v=String(i.value||'').trim();if(v){o[i.dataset.k]=v;n++}});
+  fr.querySelectorAll('.chips[data-k]').forEach(function(c){var v=[].slice.call(c.querySelectorAll('input:checked')).map(function(x){return x.value}).join(', ');if(v){o[c.dataset.k]=v;n++}});
+  var r=fr.querySelector('.sres');if(!n){r.className='st sres bad';r.textContent='Nothing to send — fill at least one detail.';return}
   btn.disabled=true;r.className='st sres wait';r.textContent='Sending…';
   post({action:'publicExtract',k:K,doc:d,fields:o}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');r.className='st sres ok';r.textContent='✓ '+n+' detail(s) sent to the office. You can correct and send again if needed.';btn.disabled=false;btn.textContent='Send again';mark(d)})
    .catch(function(e){btn.disabled=false;r.className='st sres bad';r.textContent='✗ '+(e&&e.message||'Could not send — check internet and tap again')})}}
+/* ---------- chassis & engine stamping ---------- */
+var vk='',vseq=0;
+document.querySelectorAll('.docs button[data-v]').forEach(function(b){b.onclick=function(){vk=b.dataset.v;$('vf').value='';$('vf').click()}});
+$('vf').onchange=function(){var fs=[].slice.call(this.files||[]),k=vk;this.value='';if(fs.length)stampDoc(k,fs)};
+/* the RC / fitness number on this page (if read here); the office also matches with the Survey Report */
+function docVal(k){var v='';document.querySelectorAll('#docList [data-k="'+k+'"]').forEach(function(i){if(!v&&i.value)v=i.value.trim()});return v}
+function stampDoc(k,fs){var isC=k==='chas',nm=isC?'Chassis No.':'Engine No.',box=document.createElement('div');box.className='doc';box.id='vd'+(++vseq);
+ box.innerHTML='<div class="hd"><b>'+nm+' — physical</b><span class="note">'+fs.length+' photo(s)</span></div><div class="st up wait">Uploading…</div><div class="st rd wait">Reading the stamping…</div><div class="bar"><i></i></div><div class="frm"></div>';
+ $('vList').insertBefore(box,$('vList').firstChild);var Qb=function(s){return box.querySelector(s)};
+ var sub=(+INFO.version||0)>=5?'Survey Photographs/Chassis & Engine':'Documents',st=stamp(),ok=0,bad=[];
+ fs.reduce(function(p,f,i){return p.then(function(){return send(f,(isC?'Chassis_Physical_':'Engine_Physical_')+st+(fs.length>1?'_'+(i+1):''),sub,2400).then(function(){ok++}).catch(function(e){bad.push(e&&e.message||e)})})},Promise.resolve())
+  .then(function(){var u=Qb('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' photo(s) saved in the claim folder'});
+ var prog=function(s,p){Qb('.rd').textContent='Reading the stamping — '+s+(p?' · '+Math.round(p*100)+'%':'');Qb('.bar i').style.width=Math.round((p||0)*100)+'%'};PROG=prog;
+ var cands=[],raws=[],modes=[{m:'g',psm:7},{m:'bw',psm:7},{m:'g',psm:6},{m:'bw',psm:11},{m:'g',psm:7,r:90},{m:'g',psm:7,r:270}];
+ fs.reduce(function(p,f){return p.then(function(){return img(f).then(function(im){var i=0;return new Promise(function(done){(function next(){
+   if(i>=modes.length||(cands.length&&i>=3)){done();return}var M=modes[i++];prog('pass '+i,0);
+   ocr(prep(im,M.m,M.r||0),M.psm).then(function(t){var r=isC?AIRDOC.parseChassisPhoto(t):AIRDOC.parseEnginePhoto(t);raws.push(r.raw);(r.candidates||[]).forEach(function(c){if(cands.indexOf(c)<0&&!/[A-Z]{6,}/.test(c))cands.push(c)});
+    if(isC)cands.sort(function(a,b){return Math.abs(a.length-17)-Math.abs(b.length-17)});next()}).catch(function(){next()})})()})})})},Promise.resolve())
+  .then(function(){PROG=null;Qb('.bar').style.display='none';var r=Qb('.rd');r.className='st rd '+(cands.length?'ok':'bad');r.textContent=cands.length?'✓ Number read — check it with the vehicle':'Could not read the stamping clearly — type the number you see.';
+   var fr=Qb('.frm'),docK=isC?'chas':'eng',inp0=cands[0]||'';
+   fr.innerHTML='<div class="fl"><div class="wide2"><label>'+nm+' as stamped on the vehicle</label><input data-p="1" type="text" value="'+esc(cands[0]||'')+'" style="text-transform:uppercase;letter-spacing:1px;font-weight:700"'+(cands[0]?' class="got"':'')+'></div></div>'+
+    (cands.length>1?'<div class="note">Other readings — tap to use:</div><div class="cands">'+cands.slice(1,6).filter(function(c){return c!==inp0}).slice(0,4).map(function(c){return '<button type="button">'+esc(c)+'</button>'}).join('')+'</div>':'')+
+    '<div class="vres unknown"></div><button class="wide snd">Send '+nm+'</button><div class="st sres"></div>';
+   var inp=fr.querySelector('input[data-p]'),vr=fr.querySelector('.vres');
+   var cmp=function(){var docv=docVal(docK),v=inp.value.trim(),c=!docv?'unknown':(isC?AIRDOC.compareChassis(v,docv,''):AIRDOC.compareEngine(v,docv,''));
+    vr.className='vres '+c;vr.textContent=!docv?'RC '+(isC?'chassis':'engine')+' no. not on this page — the office will match it with the Survey Report.':c==='match'?'✓ Matches the RC ('+docv+')':c==='partial'?'≈ Last characters match the RC ('+docv+') — check carefully':c==='mismatch'?'✗ Does NOT match the RC ('+docv+')':'? Could not compare';return c};
+   inp.oninput=cmp;fr.querySelectorAll('.cands button').forEach(function(b){b.onclick=function(){inp.value=b.textContent;cmp()}});cmp();
+   var btn=fr.querySelector('.snd');btn.onclick=function(){var v=inp.value.trim().toUpperCase().replace(/\s+/g,''),res=fr.querySelector('.sres');if(!v){res.className='st sres bad';res.textContent='Type the number first.';return}
+    if((+INFO.version||0)<5){res.className='st sres bad';res.textContent='The photo is saved. The office must update its helper before numbers can be sent from here.';return}
+    var o={};o[isC?'pchas':'peng']=v;var c=cmp();if(c!=='unknown')o[isC?'pchasm':'pengm']=c;
+    btn.disabled=true;res.className='st sres wait';res.textContent='Sending…';
+    post({action:'publicExtract',k:K,doc:'phys',fields:o}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');res.className='st sres ok';res.textContent='✓ Sent to the office for matching.';btn.disabled=false;btn.textContent='Send again';var b=document.querySelector('.docs button[data-v="'+k+'"]');if(b)b.classList.add('done')})
+     .catch(function(e){btn.disabled=false;res.className='st sres bad';res.textContent='✗ '+(e&&e.message||'Could not send')})}})}
 function mark(d){var b=document.querySelector('.docs button[data-d="'+d+'"]');if(b)b.classList.add('done')}
 </script></body></html>
