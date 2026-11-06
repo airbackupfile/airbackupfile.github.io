@@ -21,13 +21,14 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
 .chips label.on{background:#e7f6ec;border-color:#7cc59a}.fl .chips input{width:auto;margin:0;padding:0;flex:0 0 auto}.fl .chips label{display:inline-flex;font-size:13px;color:#172b4d;margin:0}.hint{font-size:11px;color:#b45309;margin-top:2px}
 .docs button b{position:absolute;top:5px;right:6px;background:#1769aa;color:#fff;border-radius:999px;font-size:11px;padding:0 6px;line-height:18px}.docs button{position:relative}
 .vres{font-weight:800;border-radius:9px;padding:6px 10px;margin-top:8px;font-size:14px}.vres.match{background:#e7f6ec;color:#166534}.vres.partial{background:#fff6dc;color:#92400e}.vres.mismatch{background:#fde8e8;color:#b91c1c}.vres.unknown{background:#eef2f6;color:#475569}.cands{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cands button{background:#fff;color:#1769aa;border:1px solid #9cc2e5;padding:5px 9px;font-size:13px;border-radius:999px}
+.wtype{display:flex;flex-wrap:wrap;gap:6px}.wtype button{background:#fff;color:#0b2b4c;border:1px solid #c6dcf0;padding:7px 10px;font-size:13px;border-radius:999px}.wtype button.on{background:#0b2b4c;color:#fff;border-color:#0b2b4c}
 .pl{margin-top:10px}.pl .cat{font-weight:700;font-size:14px;margin-top:8px}.pl .row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 2px;border-bottom:1px solid #eef2f6}
 </style></head><body><div class="w">
 <div class="top"><h1 id="h1">Upload documents &amp; photos</h1><p id="ttl">Checking the link…</p><p id="val" class="val" style="display:none"></p></div>
 <div id="bad" class="card err" style="display:none"></div>
 <div id="how" class="card how" style="display:none"></div>
 
-<div id="wMode" style="display:none"><div class="card"><label class="pick" for="f">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+<div id="wMode" style="display:none"><div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:6px">What are you uploading?</div><div class="wtype" id="wType"><button data-t="Estimate">🧾 Estimate</button><button data-t="Bill">💳 Final bill</button><button data-t="Photo">📷 Photos</button><button data-t="ClaimForm">📝 Claim form</button><button data-t="KYC">🪪 KYC / ID</button><button data-t="" class="on">📄 Other</button></div><label class="pick" for="f" style="margin-top:10px">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
 <ul id="list"></ul><button id="go" class="wide" disabled>Upload</button></div></div>
 
 <div id="hMode" style="display:none">
@@ -273,7 +274,8 @@ function send(f,name,sub,side){if(f.size>MAXB)return Promise.reject(new Error('l
   var once=function(){return post({action:'publicUpload',k:K,fileName:nm,mime:p.mime,data:p.data,sub:sub||'Others'})};
   return once().catch(function(){return new Promise(function(r){setTimeout(r,2500)}).then(once)})}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');used();return j})}
 /* ---------- workshop / others ---------- */
-var files=[];
+var files=[],WT='';
+document.querySelectorAll('#wType button').forEach(function(b){b.onclick=function(){WT=b.dataset.t;document.querySelectorAll('#wType button').forEach(function(x){x.classList.toggle('on',x===b)})}});
 function li(i,t,c){var l=$('list').children[i];l.lastChild.textContent=t;l.lastChild.className=c}
 $('f').onchange=function(){files=[].slice.call(this.files||[]);var ul=$('list');ul.innerHTML='';
  files.forEach(function(f){var l=document.createElement('li');var n=document.createElement('b');n.textContent=f.name;var s=document.createElement('span');s.className='wait';s.textContent=f.size>MAXB?'too large':'ready';l.appendChild(n);l.appendChild(s);ul.appendChild(l)});
@@ -281,7 +283,7 @@ $('f').onchange=function(){files=[].slice.call(this.files||[]);var ul=$('list');
 $('go').onclick=function(){var btn=this;btn.disabled=true;var i=0,ok=0;
  (function next(){if(i>=files.length){btn.textContent=ok?'✓ Done — '+ok+' file(s) sent. Choose more to upload again':'Upload';btn.disabled=true;files=[];$('f').value='';return}
   var k=i++,f=files[k];if(f.size>MAXB){li(k,'too large','bad');return next()}li(k,'uploading…','wait');
-  send(f,'','Others').then(function(){ok++;li(k,'✓ sent','ok')}).catch(function(e){li(k,'✗ '+(e&&e.message||'could not send — check internet'),'bad')}).then(next)})()};
+  send(f,WT?WT+'_'+String(f.name||'file').replace(/\.[^.]+$/,'').replace(/[^A-Za-z0-9 _-]+/g,'').slice(0,40):'','Others').then(function(){ok++;li(k,'✓ sent','ok')}).catch(function(e){li(k,'✗ '+(e&&e.message||'could not send — check internet'),'bad')}).then(next)})()};
 /* ---------- claim handler: survey photos by stage ---------- */
 var pq=Promise.resolve(),pn=0,pcat='',PC={};
 document.querySelectorAll('#cats button').forEach(function(b){b.onclick=function(){pcat=b.dataset.c;$('pf').value='';$('pf').click()}});
