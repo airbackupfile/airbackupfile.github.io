@@ -23,6 +23,13 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
 .vres{font-weight:800;border-radius:9px;padding:6px 10px;margin-top:8px;font-size:14px}.vres.match{background:#e7f6ec;color:#166534}.vres.partial{background:#fff6dc;color:#92400e}.vres.mismatch{background:#fde8e8;color:#b91c1c}.vres.unknown{background:#eef2f6;color:#475569}.cands{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cands button{background:#fff;color:#1769aa;border:1px solid #9cc2e5;padding:5px 9px;font-size:13px;border-radius:999px}
 .wtype{display:flex;flex-wrap:wrap;gap:6px}.wtype button{background:#fff;color:#0b2b4c;border:1px solid #c6dcf0;padding:7px 10px;font-size:13px;border-radius:999px}.wtype button.on{background:#0b2b4c;color:#fff;border-color:#0b2b4c}
 .pl{margin-top:10px}.pl .cat{font-weight:700;font-size:14px;margin-top:8px}.pl .row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 2px;border-bottom:1px solid #eef2f6}
+.idoc{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #eef2f6}.idoc .n{flex:1;font-size:14px;font-weight:600}.idoc .n small{display:block;font-weight:500;color:#5b6b82;font-size:12px}
+.idoc button{width:auto;margin:0;padding:8px 14px;font-size:13px;border-radius:10px;white-space:nowrap}.idoc.got .n:before{content:'✓ ';color:#166534}.idoc .st{font-size:12px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:14px}.info b{color:#5b6b82;font-weight:600}
+.ck{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid #eef2f6;font-size:14px}.ck .n{flex:1}.ck .seg{display:flex;border:1px solid #c9d5e2;border-radius:9px;overflow:hidden}
+.ck .seg button{width:auto;margin:0;padding:6px 9px;font-size:12px;border-radius:0;background:#fff;color:#334;font-weight:600}.ck .seg button+button{border-left:1px solid #c9d5e2}
+.ck .seg button.on[data-s=y]{background:#166534;color:#fff}.ck .seg button.on[data-s=na]{background:#64748b;color:#fff}.ck .seg button.on[data-s=n]{background:#b45309;color:#fff}
+@media(max-width:520px){.ck{flex-wrap:wrap}.ck .n{flex-basis:100%}.ck .seg{margin-left:auto}}
 </style></head><body><div class="w">
 <div class="top"><h1 id="h1">Upload documents &amp; photos</h1><p id="ttl">Checking the link…</p><p id="val" class="val" style="display:none"></p></div>
 <div id="bad" class="card err" style="display:none"></div>
@@ -30,6 +37,12 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
 
 <div id="wMode" style="display:none"><div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:6px">What are you uploading?</div><div class="wtype" id="wType"><button data-t="Estimate">🧾 Estimate</button><button data-t="Bill">💳 Final bill</button><button data-t="Photo">📷 Photos</button><button data-t="ClaimForm">📝 Claim form</button><button data-t="KYC">🪪 KYC / ID</button><button data-t="" class="on">📄 Other</button></div><label class="pick" for="f" style="margin-top:10px">📷 Tap to choose photos or files</label><input type="file" id="f" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
 <ul id="list"></ul><button id="go" class="wide" disabled>Upload</button></div></div>
+
+<div id="iMode" style="display:none">
+ <div class="card" id="iInfo" style="display:none"></div>
+ <div class="card"><h2>Documents required</h2><p class="note">Tap <b>Upload</b> next to each document, then take a clear photo or choose the PDF. You can select several pages at once.</p><div id="iList"></div>
+ <input type="file" id="iF" multiple accept="image/*,application/pdf,.pdf,.doc,.docx" style="display:none"></div>
+</div>
 
 <div id="hMode" style="display:none">
  <div class="card"><h2>1 · Documents</h2><p class="note">Tap the document, then take a clear photo or choose the PDF. You can select the front and back together.</p>
@@ -41,6 +54,7 @@ button{font:inherit;font-weight:700;background:#1769aa;color:#fff;border:0;borde
  <div class="card"><h2>3 · Chassis &amp; Engine — physical verification</h2><p class="note">Clean the stamping, take a sharp close-up in good light (use the flash if needed). The number is read and matched with the RC.</p>
   <div class="docs" style="grid-template-columns:1fr 1fr"><button data-v="chas"><span>🔩</span>Chassis No.<br><small style="font-weight:600">stamping photo</small></button><button data-v="eng"><span>⚙️</span>Engine No.<br><small style="font-weight:600">stamping photo</small></button></div>
   <input type="file" id="vf" multiple accept="image/*" capture="environment" style="display:none"><div id="vList"></div></div>
+ <div class="card" id="hChk" style="display:none"><h2>4 · Documents checklist</h2><p class="note">Anything you upload above or with <b>📎 Upload</b> here is marked <b>Received</b> automatically. You can also mark a document <b>N/A</b> (not applicable) or <b>Pending</b> and tap <b>Save checklist</b>. The office claim file is updated.</p><div id="ckList"></div><input type="file" id="ckF" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" style="display:none"><button id="ckSave" disabled>Save checklist</button><p class="note" id="ckMsg"></p></div>
 </div>
 <p class="note" id="foot" style="display:none">Files go directly and securely to the surveyor’s office. You cannot see, change or delete files already sent.</p>
 </div>
@@ -257,12 +271,15 @@ function stamp(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')
 function validity(){if(!INFO.exp)return;var days=Math.max(0,Math.ceil((INFO.exp-Date.now())/86400000)),v=$('val');v.style.display='inline-block';
  v.textContent='⏳ Valid until '+fdt(INFO.exp)+' ('+days+(days===1?' day':' days')+' left)'+(INFO.left!=null?' · '+INFO.left+' uploads left':'')}
 function how(kind){var h=$('how');h.style.display='block';
+ if(kind==='i'){h.innerHTML='<h2>How to upload</h2><ol><li>Below is the list of documents needed for your claim.</li><li>Tap <b>Upload</b> next to a document → take a clear photo (flat, good light, all corners visible) or choose the PDF.</li><li>Wait until it shows <b class="ok">✓ sent</b>. Use <b>Other document</b> for anything else.</li></ol><p class="note">You can open this link again and upload the remaining documents until it expires.</p>';return}
  h.innerHTML=kind==='h'?'<h2>How to use this link</h2><ol><li><b>Documents:</b> tap <b>Driving Licence, RC, Permit, Fitness</b> or <b>Policy</b> → take a clear photo (flat, good light, all four corners visible) or choose the PDF.</li><li>The details are read on this phone in a few seconds. <b>Check them, correct anything wrong</b>, then tap <b>Send details</b>. The office Survey Report is filled automatically.</li><li><b>Survey photos:</b> tap the stage — <b>Crash Photo, Dismantle, Status 1–4</b> or <b>Resurvey</b> — and take or select the photos. They upload by themselves.</li><li><b>Chassis &amp; Engine:</b> tap <b>Chassis No.</b> or <b>Engine No.</b> and photograph the stamping on the vehicle. Check the number read, then tap <b>Send</b> — it is matched with the RC.</li><li>Wait until every item shows <b class="ok">✓</b> before closing this page.</li></ol><p class="note">Photos, PDF · up to 20 MB each. You can open this link again and add more until it expires.</p>'
  :'<h2>How to upload</h2><ol><li>Tap <b>Choose photos or files</b>.</li><li>Select photos, PDF, Word or Excel files (up to 20 MB each). You can select many at once.</li><li>Tap <b>Upload</b> and wait until each file shows <b class="ok">✓ sent</b>.</li></ol><p class="note">You can open this link again and upload more until it expires.</p>'}
 if(!K||!API)fail('This upload link is incomplete. Please ask the surveyor to send it again.');
 else post({action:'publicInfo',k:K}).then(function(j){if(!j||!j.ok){$('ttl').textContent='';fail(j&&j.error||'This upload link is not valid or has expired.');return}
-  INFO=j;$('ttl').textContent=j.title||'';validity();var kind=j.kind==='h'?'h':'w';how(kind);$('foot').style.display='block';
-  if(kind==='h'){$('h1').textContent='Claim handler — documents & photos';$('hMode').style.display='block'}else{$('h1').textContent='Upload documents & photos';$('wMode').style.display='block'}})
+  INFO=j;$('ttl').textContent=j.title||'';validity();var kind=j.kind==='h'||j.kind==='i'?j.kind:'w';how(kind);$('foot').style.display='block';
+  if(kind==='h'){$('h1').textContent='Claim handler — documents & photos';$('hMode').style.display='block';ckInit(j.docs||[])}
+  else if(kind==='i'){$('h1').textContent='Insured — upload claim documents';$('iMode').style.display='block';iInit(j)}
+  else{$('h1').textContent='Upload documents & photos';$('wMode').style.display='block'}})
  .catch(function(){$('ttl').textContent='';fail('Could not connect. Please check the internet connection and open the link again.')});
 function used(){if(INFO.left!=null){INFO.left=Math.max(0,INFO.left-1);validity()}}
 /* ---------- files ---------- */
@@ -273,6 +290,34 @@ function send(f,name,sub,side){if(f.size>MAXB)return Promise.reject(new Error('l
  return shrink(f,side||1800,0.86).then(function(x){return x||raw(f)}).then(function(p){var nm=name?name+p.ext:(String(f.name||'file').replace(/\.[^.]+$/,'')+p.ext);
   var once=function(){return post({action:'publicUpload',k:K,fileName:nm,mime:p.mime,data:p.data,sub:sub||'Others'})};
   return once().catch(function(){return new Promise(function(r){setTimeout(r,2500)}).then(once)})}).then(function(j){if(!j||!j.ok)throw new Error(j&&j.error||'not accepted');used();return j})}
+/* ---------- insured: documents required, one Upload button each ---------- */
+var IDEF=[['ClaimForm','Claim form (duly filled & signed)'],['RC','Registration Certificate (RC)'],['DL','Driving Licence'],['Policy','Insurance Policy'],['Tax','Road Tax receipt'],['KYC','PAN card & ID proof of the insured'],['CKYC','Duly filled CKYC form with supporting documents'],['Cheque','Cancelled cheque (with name, A/c no. & IFSC)'],['Permit','Fitness, Permit & Permit Authorisation (commercial vehicles)'],['Photo','Spot photographs, if any'],['FIR','FIR / GD / Seizure list / Court release order (if reported to police)']],ITAG=null,IROW=null;
+function iInit(j){var inf=j.info||{},rows=[['Claim No.',inf.claimNo],['Insurer',inf.insurer],['Insured',inf.insured],['Vehicle / Item',inf.item]].filter(function(r){return r[1]});
+ if(rows.length){var b=$('iInfo');b.style.display='block';b.innerHTML='<div class="info">'+rows.map(function(r){return '<b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span>'}).join('')+'</div>'}
+ var L=(j.docs&&j.docs.length?j.docs:IDEF).concat([['Other','Other document','']]),box=$('iList');
+ box.innerHTML=L.map(function(d,i){return '<div class="idoc'+(d[2]==='y'?' got':'')+'" data-i="'+i+'"><div class="n">'+esc(d[1])+'<small class="st">'+(d[2]==='y'?'Already received by the office':'')+'</small></div><button type="button">Upload</button></div>'}).join('');
+ box.querySelectorAll('.idoc').forEach(function(r){r.querySelector('button').onclick=function(){var d=L[+r.dataset.i];ITAG=d[0]==='Other'?'':d[0];IROW=r;$('iF').value='';$('iF').click()}})}
+$('iF').onchange=function(){var fs=[].slice.call(this.files||[]),row=IROW,tag=ITAG,st=row.querySelector('.st'),btn=row.querySelector('button'),ok=0,bad=0,i=0;if(!fs.length)return;btn.disabled=true;
+ (function next(){if(i>=fs.length){btn.disabled=false;btn.textContent='Add more';st.className='st '+(bad?'bad':'ok');st.textContent=(ok?'✓ '+ok+' file'+(ok===1?'':'s')+' sent':'')+(bad?(ok?' · ':'')+'✗ '+bad+' failed — try again':'');if(ok)row.classList.add('got');return}
+  var f=fs[i++];st.className='st wait';st.textContent='Uploading '+i+' of '+fs.length+'…';
+  send(f,(tag?tag+'_':'')+String(f.name||'file').replace(/\.[^.]+$/,'').replace(/[^A-Za-z0-9 _-]+/g,'').slice(0,40)||('file'+i),'Documents').then(function(){ok++}).catch(function(){bad++}).then(next)})()};
+/* ---------- claim handler: documents checklist ---------- */
+var CK={},KEYTAG={claimform:'ClaimForm',policy:'Policy',rc:'RC',dl:'DL',kyc:'KYC',estimate:'Estimate',photos:'Photo',bill:'Bill',receipt:'Receipt',cheque:'Cheque',fir:'FIR',permit:'Permit',satisfaction:'Satisfaction',stock:'Stock'},CKK='';
+/* any upload for a document marks it Received in the checklist and saves it at once */
+function ckAuto(k){var c=k&&CK[k];if(!c||c.o==='y')return;c.v='y';c.p();var f={};f[k]='y';
+ post({action:'publicExtract',k:K,doc:'chk',fields:f}).then(function(r){if(r&&r.ok){c.o='y';ckDirty();$('ckMsg').innerHTML='<span class="ok">✓ '+esc(c.l)+' marked Received in the office claim file.</span>'}}).catch(function(){ckDirty()})}
+function ckInit(L){if(!L.length||!(+INFO.version>=9))return;$('hChk').style.display='block';
+ $('ckList').innerHTML=L.map(function(d){CK[d[0]]={o:d[2]||'n',v:d[2]||'n',l:d[1]};return '<div class="ck" data-k="'+esc(d[0])+'"><div class="n">'+esc(d[1])+'<small class="st" style="display:block;font-size:12px"></small></div><button type="button" class="ckU" title="Upload this document" style="width:auto;margin:0;padding:6px 10px;font-size:12px;border-radius:9px">📎 Upload</button><div class="seg"><button type="button" data-s="y">Received</button><button type="button" data-s="na">N/A</button><button type="button" data-s="n">Pending</button></div></div>'}).join('');
+ $('ckList').querySelectorAll('.ck').forEach(function(r){var k=r.dataset.k,paint=function(){r.querySelectorAll('.seg button').forEach(function(b){b.classList.toggle('on',b.dataset.s===CK[k].v)})};paint();
+  CK[k].p=paint;CK[k].r=r;r.querySelector('.ckU').onclick=function(){CKK=k;$('ckF').value='';$('ckF').click()};
+  r.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){CK[k].v=b.dataset.s;paint();ckDirty()}})})}
+$('ckF').onchange=function(){var k=CKK,c=CK[k],fs=[].slice.call(this.files||[]);if(!c||!fs.length)return;var st=c.r.querySelector('.st'),b=c.r.querySelector('.ckU'),ok=0,bad=0,i=0,tag=KEYTAG[k]||'Doc',lb=String(c.l).replace(/[^A-Za-z0-9 ]+/g,' ').trim().replace(/\s+/g,'_').slice(0,30);b.disabled=true;
+ (function next(){if(i>=fs.length){b.disabled=false;st.className='st '+(bad?'bad':'ok');st.textContent=(ok?'✓ '+ok+' file'+(ok===1?'':'s')+' uploaded':'')+(bad?(ok?' · ':'')+'✗ '+bad+' failed':'');if(ok)ckAuto(k);return}
+  var f=fs[i++];st.className='st wait';st.textContent='Uploading '+i+' of '+fs.length+'…';send(f,tag+'_'+lb+'_'+stamp()+(fs.length>1?'_'+i:''),'Documents',2200).then(function(){ok++}).catch(function(){bad++}).then(next)})()};
+function ckDirty(){var n=Object.keys(CK).filter(function(k){return CK[k].v!==CK[k].o}).length;$('ckSave').disabled=!n;$('ckSave').textContent=n?'Save checklist ('+n+' change'+(n===1?'':'s')+')':'Save checklist';$('ckMsg').textContent=''}
+$('ckSave').onclick=function(){var f={},btn=this;Object.keys(CK).forEach(function(k){if(CK[k].v!==CK[k].o)f[k]=CK[k].v});btn.disabled=true;btn.textContent='Saving…';
+ post({action:'publicExtract',k:K,doc:'chk',fields:f}).then(function(r){if(!r||!r.ok)throw new Error(r&&r.error||'not saved');Object.keys(f).forEach(function(k){CK[k].o=CK[k].v});ckDirty();$('ckMsg').innerHTML='<span class="ok">✓ Checklist saved — the office claim file is updated.</span>'})
+  .catch(function(e){btn.disabled=false;btn.textContent='Save checklist';$('ckMsg').innerHTML='<span class="bad">✗ '+esc(e&&e.message||'Could not save — check the internet')+'</span>'})};
 /* ---------- workshop / others ---------- */
 var files=[],WT='';
 document.querySelectorAll('#wType button').forEach(function(b){b.onclick=function(){WT=b.dataset.t;document.querySelectorAll('#wType button').forEach(function(x){x.classList.toggle('on',x===b)})}});
@@ -292,7 +337,7 @@ function catBox(c){var id='pc_'+c.replace(/\W/g,''),x=$(id);if(!x){x=document.cr
 $('pf').onchange=function(){var fs=[].slice.call(this.files||[]),c=pcat||'Crash Photo';this.value='';if(!fs.length)return;var sub=(+INFO.version||0)>=4?'Survey Photographs/'+c:'Survey Photographs',pre=c.replace(/\s+/g,'_');
  fs.forEach(function(f){var n=++pn,box=catBox(c),r=document.createElement('div');r.className='row';r.innerHTML='<span></span><span class="wait">waiting…</span>';r.firstChild.textContent=f.name||('Photo '+n);box.lastChild.appendChild(r);
   (PC[c]=PC[c]||{ok:0,all:0}).all++;catBox(c);
-  pq=pq.then(function(){r.lastChild.textContent='uploading…';return send(f,pre+'_'+stamp()+'_'+n,sub,1800).then(function(){r.lastChild.textContent='✓ sent';r.lastChild.className='ok';PC[c].ok++;catBox(c)}).catch(function(e){r.lastChild.textContent='✗ '+(e&&e.message||'not sent');r.lastChild.className='bad'})})})};
+  pq=pq.then(function(){r.lastChild.textContent='uploading…';return send(f,pre+'_'+stamp()+'_'+n,sub,1800).then(function(){r.lastChild.textContent='✓ sent';r.lastChild.className='ok';PC[c].ok++;catBox(c);ckAuto('photos')}).catch(function(e){r.lastChild.textContent='✗ '+(e&&e.message||'not sent');r.lastChild.className='bad'})})})};
 /* ---------- claim handler: documents (read on this phone with Tesseract.js + pdf.js) ---------- */
 var TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',PDFW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 /* fields, labels and drop-down options come from the AIR Survey Report data entry form (filled in when the page is built) */
@@ -376,7 +421,7 @@ function doc(d,fs){var D=DOCS[d],id='doc'+(++seq),box=document.createElement('di
  $('docList').insertBefore(box,$('docList').firstChild);var Qb=function(s){return box.querySelector(s)};
  var st=stamp(),ok=0,bad=[];
  var ups=fs.reduce(function(p,f,i){return p.then(function(){return send(f,D.file+'_'+st+(fs.length>1?'_'+(i+1):''),'Documents',2200).then(function(){ok++}).catch(function(e){bad.push((f.name||'file')+': '+(e&&e.message||e))})})},Promise.resolve())
-  .then(function(){var u=Qb('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' file(s) saved in the claim folder'});
+  .then(function(){if(ok)ckAuto(({dl:'dl',rc:'rc',permit:'permit',fitness:'permit',policy:'policy'})[d]);var u=Qb('.up');u.className='st up '+(bad.length?'bad':'ok');u.textContent=bad.length?'✗ Not uploaded: '+bad.join('; '):'✓ '+ok+' file(s) saved in the claim folder'});
  if(!D.p){ups.then(function(){if(!bad.length)mark(d)});return}
  var step='',prog=function(s,p){if(!/recognizing/.test(s))step=s;var r=Qb('.rd');r.textContent='Reading the '+D.n+' — '+(step||s)+(/recognizing/.test(s)&&p?' · '+Math.round(p*100)+'%':'');Qb('.bar i').style.width=Math.round((p||0)*100)+'%'};
  var all=[];fs.reduce(function(p,f,fi){return p.then(function(){PROG=prog;return readFile(f,D,function(s,q){prog((fs.length>1?'file '+(fi+1)+' · ':'')+s,q)}).then(function(r){all=all.concat(r)})})},Promise.resolve())
