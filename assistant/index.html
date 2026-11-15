@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AIR Assistant</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b2b4c">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AIR Assistant"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
+<style>html,body{margin:0;height:100%;background:#0b2b4c}iframe{border:0;width:100vw;height:100vh;height:100dvh;display:block;background:#f2f6fa}</style>
+</head><body>
+<!-- The AIR Assistant shortcut: AIR itself, opened straight on the Assistant. You sign in once; AIR keeps you signed in. -->
+<iframe src="../?mode=assistant" title="AIR Assistant" allow="clipboard-write; camera; microphone; geolocation; notifications"></iframe>
+<script>try{navigator.serviceWorker&&navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){})}catch(e){}</script>
+</body></html>
